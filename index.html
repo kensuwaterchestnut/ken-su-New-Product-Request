@@ -1,310 +1,211 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>新商品申請</title>
 <style>
-:root{
-  --border:#e5e7eb;--muted:#64748b;--text:#0f172a;
-  --brand:#2563eb;--good:#059669;--bad:#dc2626;
-  --bg:#f8fafc;--surface:#fff;--yellow:#fffbe6;
-}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans TC","Helvetica Neue",Arial,sans-serif}
+:root{--border:#e5e7eb;--muted:#64748b;--text:#0f172a;--brand:#2563eb;--bad:#dc2626;--bg:#f8fafc;--surface:#fff}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans TC","Helvetica Neue",Arial,sans-serif}
 .wrap{max-width:900px;margin:22px auto;padding:0 12px}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 8px 20px rgba(0,0,0,.06);padding:18px}
-h1{margin:0 0 6px;text-align:center;font-size:22px;letter-spacing:.04em}
-h1 span{color:var(--brand)}
-.hint{text-align:center;color:var(--muted);margin:0 0 14px;font-size:13px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.grid-full{grid-column:1/-1}
+h1{margin:0 0 6px;text-align:center;font-size:22px} h1 span{color:var(--brand)}
+.hint{margin:0 0 14px;text-align:center;color:var(--muted);font-size:13px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px} .grid-full{grid-column:1/-1}
 .label{font-weight:700;font-size:13px;margin-bottom:6px}
-.input,.select,.textarea{
-  width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:#fff;font-size:15px
-}
+.input,.select,.textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:#fff;font-size:15px}
 .textarea{min-height:84px;resize:vertical}
-.notice{margin-top:10px;background:var(--yellow);border:1px solid #ffe9a8;border-radius:12px;padding:12px;color:#92400e;font-size:13px}
 .hr{height:1px;background:var(--border);margin:12px 0}
 .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
-.btn{cursor:pointer;flex:1;min-width:160px;border-radius:12px;padding:12px 14px;font-weight:700;border:1px solid var(--border);background:#fff}
-.btn-primary{background:var(--brand);color:#fff;border-color:var(--brand)}
-.btn-danger{background:#fff;border-color:#fecaca;color:#b91c1c}
-.btn:disabled{opacity:.6;cursor:not-allowed}
-.small{font-size:12px;color:var(--muted)}
-.success{padding:16px;text-align:center}
-.product-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px;margin:10px 0}
-.preview{display:flex;flex-wrap:wrap;gap:10px}
-.thumb{position:relative}
-.thumb img{width:96px;height:96px;object-fit:cover;border-radius:10px;border:1px solid var(--border);display:block}
-.thumb button{
-  position:absolute;right:4px;top:4px;border:none;border-radius:999px;
-  width:24px;height:24px;background:#0009;color:#fff;cursor:pointer;font-weight:700
-}
-@media (max-width:720px){ .grid{grid-template-columns:1fr} }
+.btn{cursor:pointer;flex:1;min-width:140px;border-radius:12px;padding:12px 14px;font-weight:700;border:1px solid var(--border);background:#fff}
+.btn-primary{background:var(--brand);color:#fff;border-color:var(--brand)} .btn-danger{border-color:#fecaca;color:#b91c1c}
+.small{font-size:12px;color:var(--muted)} .error{color:var(--bad)}
+.product{border:1px dashed var(--border);border-radius:12px;padding:12px;margin:8px 0;background:#fff}
+@media (max-width:720px){.grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="card">
-    <h1>🆕 <span>啃酥新商品申請</span></h1>
-    <p class="hint">所有欄位皆為必填；可新增多個品項，圖片可多張並可移除。</p>
-    <div class="notice">提醒：每個品項至少需 1 張圖片；送出後會寫入表單並通知總部。</div>
+    <h1>🆕 <span>新商品申請</span></h1>
+    <p class="hint">純前端（GitHub Pages）→ Make Webhook → EmailJS 寄審核信；所有欄位必填。</p>
     <div class="hr"></div>
 
-    <form id="appForm" novalidate>
+    <form id="f" novalidate>
       <div class="grid">
-        <div>
-          <div class="label">分店/單位 *</div>
-          <input class="input" name="store" required placeholder="例如：啃酥總部-小洋" />
-        </div>
-        <div>
-          <div class="label">申請人 *</div>
-          <input class="input" name="applicant" required placeholder="你的姓名" />
-        </div>
-        <div>
-          <div class="label">Email *</div>
-          <input class="input" type="email" name="email" required placeholder="name@example.com" />
-        </div>
-        <div>
-          <div class="label">電話 *</div>
-          <input class="input" name="phone" required placeholder="0900-000-000" />
-        </div>
-        <div class="grid-full">
-          <div class="label">備註 *</div>
-          <textarea class="textarea" name="remark" required placeholder="其他補充、注意事項…"></textarea>
-        </div>
+        <div><div class="label">分店/單位 *</div><input class="input" name="store" required placeholder="例如：啃酥總部-小洋"></div>
+        <div><div class="label">申請人 *</div><input class="input" name="applicant" required placeholder="你的姓名"></div>
+        <div><div class="label">Email *</div><input class="input" name="email" type="email" required placeholder="name@example.com"></div>
+        <div><div class="label">電話 *</div><input class="input" name="phone" required placeholder="0900-000-000"></div>
+        <div class="grid-full"><div class="label">備註 *</div><textarea class="textarea" name="remark" required placeholder="其他補充、注意事項…"></textarea></div>
       </div>
 
       <div class="hr"></div>
-
       <div class="label">申請品項 *</div>
       <div id="products"></div>
-      <div class="actions">
-        <button class="btn" type="button" id="btnAdd">＋新增一個品項</button>
-      </div>
+      <div class="actions"><button class="btn" type="button" id="add">＋新增一個品項</button></div>
 
       <div class="actions">
-        <button class="btn btn-danger" type="button" id="btnReset">清空</button>
-        <button class="btn btn-primary" type="submit" id="btnSubmit">送出申請</button>
+        <button class="btn btn-danger" type="button" id="resetBtn">清空</button>
+        <button class="btn btn-primary" type="submit" id="submitBtn">送出申請</button>
       </div>
       <div id="msg" class="small" style="margin-top:8px"></div>
     </form>
 
-    <div id="done" class="success" style="display:none">
+    <div id="done" style="display:none;text-align:center;padding:16px">
       <h3>✅ 已送出</h3>
-      <p class="small">已寫入表單並通知總部，請留意審核通知。</p>
+      <p class="small">我們已收到你的申請，請留意審核通知。</p>
       <div id="applyNo" class="small" style="margin-top:6px;"></div>
     </div>
   </div>
 </div>
 
-<!-- ===== 產品卡片模板 ===== -->
-<template id="tplProduct">
-  <div class="product-card">
+<template id="tpl">
+  <div class="product">
     <div class="grid">
-      <div>
-        <div class="label">商品名稱 *</div>
-        <input class="input p-name" required />
-      </div>
-      <div>
-        <div class="label">規格/包裝 *</div>
-        <input class="input p-spec" required />
-      </div>
-
-      <div>
-        <div class="label">建議售價 *</div>
-        <input class="input p-price" required />
-      </div>
-      <div>
-        <div class="label">成本 *</div>
-        <input class="input p-cost" required />
-      </div>
-
-      <div>
-        <div class="label">素別 *</div>
+      <div><div class="label">商品名稱 *</div><input class="input p-name" required></div>
+      <div><div class="label">規格/包裝 *</div><input class="input p-spec" required></div>
+      <div><div class="label">建議售價 *</div><input class="input p-price" required></div>
+      <div><div class="label">成本 *</div><input class="input p-cost" required></div>
+      <div><div class="label">素別 *</div>
         <select class="select p-veg" required>
-          <option value="">請選擇</option>
-          <option>葷食</option><option>蛋奶素</option><option>奶素</option>
-          <option>蛋素</option><option>全素</option>
+          <option value="">請選擇</option><option>葷食</option><option>蛋奶素</option><option>奶素</option><option>蛋素</option><option>全素</option>
         </select>
       </div>
-      <div>
-        <div class="label">過敏原（逗號分隔）*</div>
-        <input class="input p-allg" required placeholder="蛋, 奶, 花生…" />
-      </div>
-
-      <div class="grid-full">
-        <div class="label">成分/原料 *</div>
-        <textarea class="textarea p-ings" required placeholder="主要原料…"></textarea>
-      </div>
-
-      <div>
-        <div class="label">保存期限 *</div>
-        <input class="input p-life" required placeholder="常溫/冷藏/冷凍 + 月數" />
-      </div>
-      <div>
-        <div class="label">保存方式 *</div>
-        <input class="input p-store" required placeholder="常溫/冷藏/冷凍" />
-      </div>
-
-      <div>
-        <div class="label">供應型態 *</div>
+      <div><div class="label">過敏原（逗號分隔）*</div><input class="input p-allg" required placeholder="蛋, 奶, 花生…"></div>
+      <div class="grid-full"><div class="label">成分/原料 *</div><textarea class="textarea p-ings" required placeholder="主要原料…"></textarea></div>
+      <div><div class="label">保存期限 *</div><input class="input p-life" required placeholder="常溫/冷藏/冷凍 + 月數"></div>
+      <div><div class="label">保存方式 *</div><input class="input p-store" required placeholder="常溫/冷藏/冷凍"></div>
+      <div><div class="label">供應型態 *</div>
         <select class="select p-supply" required>
           <option>常態供應</option><option>季節限定</option><option>試賣</option>
         </select>
       </div>
-      <div>
-        <div class="label">預計上架日 *</div>
-        <input class="input p-launch" type="date" required />
-      </div>
-
-      <div class="grid-full">
-        <div class="label">商品圖片（至少 1 張）*</div>
-        <input class="input p-files" type="file" accept="image/*" multiple />
-        <div class="preview p-preview" style="margin-top:6px"></div>
-      </div>
+      <div><div class="label">預計上架日 *</div><input class="input p-launch" type="date" required></div>
     </div>
-    <div class="actions">
-      <button class="btn btn-danger" type="button" onclick="removeProduct(this)">刪除此品項</button>
-    </div>
+    <div class="actions"><button class="btn btn-danger" type="button" onclick="removeProduct(this)">刪除此品項</button></div>
   </div>
 </template>
 
 <script>
-/* ========= 工具 ========= */
-function uuid(){ return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0,v=c=='x'?r:(r&0x3|0x8);return v.toString(16);}); }
-function loadImage(file){ return new Promise((resolve,reject)=>{ const fr=new FileReader(); fr.onload=e=>resolve(e.target.result); fr.onerror=reject; fr.readAsDataURL(file); }); }
-// 簡單壓縮（長邊 ≤ 1600）
-function compressBase64(dataUrl, mime){ return new Promise((resolve)=>{ const img=new Image(); img.onload=()=>{ const max=1600; let w=img.naturalWidth,h=img.naturalHeight; if(Math.max(w,h)>max){ if(w>h){h=Math.round(h*(max/w)); w=max;} else { w=Math.round(w*(max/h)); h=max; } } const c=document.createElement('canvas'); c.width=w; c.height=h; c.getContext('2d').drawImage(img,0,0,w,h); resolve(c.toDataURL(mime||'image/jpeg',0.9)); }; img.src=dataUrl; }); }
-
-/* ========= DOM ========= */
-const form = document.getElementById('appForm');
-const btnAdd = document.getElementById('btnAdd');
-const btnSubmit = document.getElementById('btnSubmit');
-const btnReset = document.getElementById('btnReset');
+const MAKE_WEBHOOK_URL = "https://hook.eu2.make.com/ys72eapfco7huad511tph2z91rea6ygc"; // 你的 Make Webhook
+const f = document.getElementById('f');
+const addBtn = document.getElementById('add');
+const productsBox = document.getElementById('products');
+const tpl = document.getElementById('tpl');
 const msg = document.getElementById('msg');
+const submitBtn = document.getElementById('submitBtn');
 const done = document.getElementById('done');
 const applyNoEl = document.getElementById('applyNo');
-const productsWrap = document.getElementById('products');
-const tpl = document.getElementById('tplProduct');
 
-/* ========= 產品卡邏輯 ========= */
-function addProductCard(){
-  const node = tpl.content.cloneNode(true);
-  const card = node.querySelector('.product-card');
-  card.imageList = [];
-
-  const input = node.querySelector('.p-files');
-  const prev = node.querySelector('.p-preview');
-
-  function renderPreview(){
-    prev.innerHTML = '';
-    card.imageList.forEach((imgObj, idx)=>{
-      const wrap = document.createElement('div'); wrap.className='thumb';
-      const img = document.createElement('img'); img.src = imgObj.dataUrl;
-      const del = document.createElement('button'); del.type='button'; del.textContent='×'; del.title='移除';
-      del.addEventListener('click', ()=>{ card.imageList.splice(idx,1); renderPreview(); });
-      wrap.appendChild(img); wrap.appendChild(del); prev.appendChild(wrap);
-    });
-  }
-
-  input.addEventListener('change', async ()=>{
-    const files = Array.from(input.files||[]);
-    for (const f of files){
-      const raw = await loadImage(f);
-      const dataUrl = await compressBase64(raw, f.type);
-      card.imageList.push({ name:f.name, type:f.type||'image/jpeg', dataUrl });
-    }
-    input.value = '';
-    renderPreview();
-  });
-
-  productsWrap.appendChild(node);
-}
+function uuid(){return'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0,v=c=='x'?r:(r&0x3|0x8);return v.toString(16);});}
+function addProduct(){ productsBox.appendChild(tpl.content.cloneNode(true)); }
 function removeProduct(btn){
-  const card = btn.closest('.product-card');
-  if (productsWrap.querySelectorAll('.product-card').length <= 1){ alert('至少需要一個品項'); return; }
+  const card = btn.closest('.product');
+  if (productsBox.querySelectorAll('.product').length <= 1) { alert('至少需要一個品項'); return; }
   card.remove();
 }
-btnAdd.addEventListener('click', addProductCard);
-addProductCard(); // 預設一張
+addBtn.addEventListener('click', addProduct);
+document.getElementById('resetBtn').addEventListener('click', ()=>{ f.reset(); productsBox.innerHTML=''; addProduct(); msg.textContent=''; });
 
-/* ========= 送出 ========= */
-btnReset.addEventListener('click', ()=>{ form.reset(); msg.textContent=''; productsWrap.innerHTML=''; addProductCard(); });
+function esc(s){return String(s||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
+function buildEmailHTML(payload){
+  const {apply_no,store,applicant,email,phone,remark,products=[]}=payload;
+  let html = `
+    <h2 style="margin:0 0 6px;">新商品申請</h2>
+    <p style="margin:0 0 8px;">
+      <b>分店：</b>${esc(store)}<br>
+      <b>申請人：</b>${esc(applicant)}（${esc(email)} / ${esc(phone)}）<br>
+      <b>申請編號：</b>${esc(apply_no)}<br>
+      <b>備註：</b>${esc(remark)}
+    </p>
+    <hr style="border:none;border-top:1px solid #eee;margin:10px 0;">`;
+  products.forEach((p,i)=>{
+    html += `
+      <h3 style="margin:10px 0 4px;">${i+1}. ${esc(p.product_name)}</h3>
+      <p style="margin:0 0 8px;color:#444;line-height:1.6;">
+        規格：${esc(p.spec)}｜建議售價：${esc(p.price_suggest)}｜成本：${esc(p.cost)}<br>
+        素別：${esc(p.vegetarian)}｜過敏原：${esc(p.allergens)}<br>
+        成分：${esc(p.ingredients)}<br>
+        保存期限：${esc(p.shelf_life)}｜保存方式：${esc(p.storage)}<br>
+        供應型態：${esc(p.supply_type)}｜預計上架日：${esc(p.launch_date)}
+      </p>`;
+  });
+  return html;
+}
 
-form.addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  msg.textContent=''; btnSubmit.disabled = true;
-
-  // 共同欄位必填
-  const commons = ['store','applicant','email','phone','remark'];
-  for (const n of commons){ const el=form.elements[n]; if(!el || !el.value.trim()){ msg.textContent='⚠️ 請完整填寫共同欄位'; btnSubmit.disabled=false; return; } }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.value.trim())){ msg.textContent='⚠️ Email 格式不正確'; btnSubmit.disabled=false; return; }
-
-  const productCards = Array.from(productsWrap.querySelectorAll('.product-card'));
-  if (!productCards.length){ msg.textContent='⚠️ 請至少新增一個品項'; btnSubmit.disabled=false; return; }
-
-  const applyNo = uuid();
-  const sentNos = JSON.parse(localStorage.getItem('appliedNos')||'[]');
-  if (sentNos.includes(applyNo)){ msg.textContent='⚠️ 重複申請編號'; btnSubmit.disabled=false; return; }
-  sentNos.push(applyNo); localStorage.setItem('appliedNos', JSON.stringify(sentNos));
-
-  try{
-    const products = [];
-    for (const card of productCards){
-      const get = sel => card.querySelector(sel);
-      const item = {
-        product_name: get('.p-name').value.trim(),
-        spec:         get('.p-spec').value.trim(),
-        price_suggest:get('.p-price').value.trim(),
-        cost:         get('.p-cost').value.trim(),
-        vegetarian:   get('.p-veg').value,
-        allergens:    get('.p-allg').value.trim(),
-        ingredients:  get('.p-ings').value.trim(),
-        shelf_life:   get('.p-life').value.trim(),
-        storage:      get('.p-store').value.trim(),
-        supply_type:  get('.p-supply').value,
-        launch_date:  get('.p-launch').value
-      };
-      for (const [k,v] of Object.entries(item)){ if(!String(v||'').trim()){ msg.textContent='⚠️ 每個品項所有欄位皆為必填'; btnSubmit.disabled=false; return; } }
-      if (!card.imageList || !card.imageList.length){ msg.textContent='⚠️ 每個品項至少需 1 張圖片'; btnSubmit.disabled=false; return; }
-
-      // 上傳圖片到 Drive
-      const payload = { items: card.imageList.map(x=>({ name:x.name, mime:x.type, base64:x.dataUrl })) };
-      const imagesMeta = await new Promise((resolve,reject)=>{
-        google.script.run.withSuccessHandler(resolve).withFailureHandler(reject).saveImages(payload);
-      });
-
-      products.push({ ...item, images: imagesMeta });
-    }
-
-    // 組共同資訊 + 多品項送後端（寫入 Sheet + 打 Make）
-    const data = {
-      apply_no: applyNo,
-      store: form.store.value.trim(),
-      applicant: form.applicant.value.trim(),
-      email: form.email.value.trim(),
-      phone: form.phone.value.trim(),
-      remark: form.remark.value.trim(),
-      products
+function gather(){
+  const products = Array.from(productsBox.querySelectorAll('.product')).map(card=>{
+    const get = sel => card.querySelector(sel).value.trim();
+    return {
+      product_name:get('.p-name'), spec:get('.p-spec'),
+      price_suggest:get('.p-price'), cost:get('.p-cost'),
+      vegetarian:card.querySelector('.p-veg').value,
+      allergens:get('.p-allg'), ingredients:get('.p-ings'),
+      shelf_life:get('.p-life'), storage:get('.p-store'),
+      supply_type:card.querySelector('.p-supply').value,
+      launch_date:card.querySelector('.p-launch').value
     };
+  });
+  const apply_no = uuid();
+  const payload = {
+    type:"new_product_application",
+    apply_no,
+    store: f.store.value.trim(),
+    applicant: f.applicant.value.trim(),
+    email: f.email.value.trim(),
+    phone: f.phone.value.trim(),
+    remark: f.remark.value.trim(),
+    products
+  };
+  payload.email_subject = `新商品申請｜${payload.store}｜${apply_no}`;
+  payload.email_to = f.email.value.trim(); // 若要固定內部信箱：改成 "review@yourdomain.com"
+  payload.email_html = buildEmailHTML(payload);
+  return payload;
+}
 
-    const res = await new Promise((resolve,reject)=>{
-      google.script.run.withSuccessHandler(resolve).withFailureHandler(reject).createApplications(data);
+function validate(){
+  const need = [f.store, f.applicant, f.email, f.phone, f.remark];
+  for (const el of need){ if(!el.value.trim()) return '請完整填寫共同欄位'; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.value.trim())) return 'Email 格式不正確';
+  const cards = productsBox.querySelectorAll('.product');
+  if(!cards.length) return '請至少新增一個品項';
+  for (const card of cards){
+    const req = ['.p-name','.p-spec','.p-price','.p-cost','.p-veg','.p-allg','.p-ings','.p-life','.p-store','.p-supply','.p-launch'];
+    for (const sel of req){
+      const el = card.querySelector(sel);
+      if(!el || !String(el.value||'').trim()) return '每個品項所有欄位皆為必填';
+    }
+  }
+  return '';
+}
+
+f.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  msg.textContent = '';
+  const err = validate();
+  if (err){ msg.textContent = '⚠️ ' + err; return; }
+
+  const payload = gather();
+  submitBtn.disabled = true;
+  try{
+    const res = await fetch(MAKE_WEBHOOK_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
     });
-
-    if (res && res.dedup){ msg.textContent='⚠️ 重複申請（同申請編號），已略過'; btnSubmit.disabled=false; return; }
-
-    form.style.display='none';
-    done.style.display='block';
-    applyNoEl.textContent = '申請編號：' + (res.apply_no || applyNo);
-  }catch(err){
-    console.error(err);
-    msg.textContent = '❌ 送出失敗：' + (err?.message || err);
-    btnSubmit.disabled=false;
+    if (!res.ok) throw new Error('Make 回應狀態碼：'+res.status);
+    f.style.display='none'; done.style.display='block';
+    applyNoEl.textContent = '申請編號：' + payload.apply_no;
+  }catch(e){
+    msg.innerHTML = `<span class="error">❌ 送出失敗：</span>${e.message||e}`;
+  }finally{
+    submitBtn.disabled = false;
   }
 });
+
+// 預設先一張
+addProduct();
 </script>
 </body>
 </html>
