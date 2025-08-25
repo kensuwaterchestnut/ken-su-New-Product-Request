@@ -2,7 +2,7 @@
 const SHEET_ID = '<<你的 Google Sheet ID>>';          // 目標試算表
 const SHEET_NAME = '表單';                             // 工作表名稱（不存在會自動建立）
 const DRIVE_FOLDER_ID = '<<你的圖片上傳資料夾 ID>>';    // Google Drive 目的資料夾
-const MAKE_WEBHOOK_URL = '<<你的 Make Webhook URL>>';  // 通知總部用
+const MAKE_WEBHOOK_URL = 'https://hook.eu2.make.com/mxd447qyeae62is1m1vsutndp3bqhudf'; // 你提供的 URL
 /* ================================================= */
 
 const ALLOWED_MIME = new Set(['image/jpeg','image/png','image/webp','image/gif']);
@@ -25,6 +25,40 @@ function _tz(){ return 'Asia/Taipei'; }
 function _nowISO(){ return Utilities.formatDate(new Date(), _tz(), "yyyy-MM-dd'T'HH:mm:ssXXX"); }
 function _s(x){ return x==null ? '' : String(x).trim(); }
 
+/* ========= 後端組 Email HTML（避免在模板迴圈相容性問題） ========= */
+function buildEmailHTML(data){
+  const esc = s => String(s||'').replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+  let html = `
+    <h2 style="margin:0 0 6px;">新商品申請</h2>
+    <p style="margin:0 0 8px;">
+      <b>分店：</b>${esc(data.store)}<br>
+      <b>申請人：</b>${esc(data.applicant)}（${esc(data.email)} / ${esc(data.phone)}）<br>
+      <b>申請編號：</b>${esc(data.apply_no)}<br>
+      <b>備註：</b>${esc(data.remark)}
+    </p>
+    <hr style="border:none;border-top:1px solid #eee;margin:10px 0;">`;
+
+  (data.products||[]).forEach((p, i)=>{
+    html += `
+      <h3 style="margin:10px 0 4px;">${i+1}. ${esc(p.product_name)}</h3>
+      <p style="margin:0 0 8px;color:#444;line-height:1.6;">
+        規格：${esc(p.spec)}｜建議售價：${esc(p.price_suggest)}｜成本：${esc(p.cost)}<br>
+        素別：${esc(p.vegetarian)}｜過敏原：${esc(p.allergens)}<br>
+        成分：${esc(p.ingredients)}<br>
+        保存期限：${esc(p.shelf_life)}｜保存方式：${esc(p.storage)}<br>
+        供應型態：${esc(p.supply_type)}｜預計上架日：${esc(p.launch_date)}
+      </p>
+      <div style="margin:6px 0 10px;">`;
+    (p.images||[]).forEach(img=>{
+      html += `<img src="${esc(img.url)}" alt="產品圖片"
+                   style="width:140px;height:140px;object-fit:cover;border-radius:8px;margin:4px;border:1px solid #eee;">`;
+    });
+    html += `</div>`;
+  });
+
+  return html;
+}
+
 /**
  * 前端丟 base64 圖片陣列進來，這裡轉成 Drive 檔
  * @param {{items: Array<{name:string, mime:string, base64:string}>}} payload
@@ -41,7 +75,7 @@ function saveImages(payload){
     const bytes = Utilities.base64Decode(b64.split(',').pop());
     const blob = Utilities.newBlob(bytes, mime, name);
     const file = folder.createFile(blob);
-    // 若要公開可改：DriveApp.Access.ANYONE_WITH_LINK
+    // 如需公開可改 ANYONE_WITH_LINK；目前設「公司網域知道連結者可看」
     file.setSharing(DriveApp.Access.DOMAIN_WITH_LINK, DriveApp.Permission.VIEW);
     out.push({ name, url:file.getUrl(), id:file.getId(), mime, size: bytes.length });
   });
@@ -49,7 +83,7 @@ function saveImages(payload){
 }
 
 /**
- * 建立多品項申請
+ * 建立多品項申請：寫入 Sheet + 通知 Make（Make 再串 EmailJS）
  * data = {
  *   apply_no, store, applicant, email, phone, remark,
  *   products: [{
@@ -61,14 +95,13 @@ function saveImages(payload){
  * }
  */
 function createApplications(data){
-  // 伺服器端再次驗證必填
-  const commonReq = ['store','applicant','email'];
+  // 伺服器端再次驗證必填（所有欄位必填）
+  const commonReq = ['store','applicant','email','phone','remark'];
   commonReq.forEach(k=>{ if(!_s(data[k])) throw new Error('共同欄位缺少：'+k); });
 
   const products = Array.isArray(data.products)?data.products:[];
   if(!products.length) throw new Error('沒有任何品項');
 
-  // 每個品項欄位必填 + 至少 1 張圖片
   products.forEach((p, idx)=>{
     const req = ['product_name','spec','price_suggest','cost','vegetarian','allergens','ingredients','shelf_life','storage','supply_type','launch_date'];
     req.forEach(k=>{ if(!_s(p[k])) throw new Error(`第 ${idx+1} 個品項缺少：${k}`); });
@@ -98,7 +131,7 @@ function createApplications(data){
     }
   }
 
-  // 寫入
+  // 寫入每個品項一列
   products.forEach((p, i)=>{
     const imgs = (p.images||[]).map(x=>x.url).join('\n');
     sh.appendRow([
@@ -111,21 +144,31 @@ function createApplications(data){
     ]);
   });
 
-  // 通知 Make（一次送共同+全部品項）
+  // 準備寄信內容（交給 Make → EmailJS）
+  const email_html = buildEmailHTML({ apply_no:applyNo, ...data });
+
+  // 通知 Make（一次送共同 + 全部品項；附上 email_html 讓 EmailJS 直接帶入）
   try{
+    const payload = {
+      type: "new_product_application",      // 讓 Make 以 Router 分流
+      apply_no: applyNo,
+      created_at: ts,
+      store: _s(data.store),
+      applicant: _s(data.applicant),
+      email: _s(data.email),
+      phone: _s(data.phone),
+      remark: _s(data.remark),
+      products,                             // 全品項詳情（含 images）
+      // ➜ EmailJS 專用欄位（Make 直接映射進 template）
+      email_subject: `新商品申請｜${_s(data.store)}｜${applyNo}`,
+      email_to: _s(data.email),            // 也可改成固定通知信箱
+      email_html
+    };
+
     UrlFetchApp.fetch(MAKE_WEBHOOK_URL, {
       method:'post',
       contentType:'application/json',
-      payload: JSON.stringify({
-        apply_no: applyNo,
-        created_at: ts,
-        store: _s(data.store),
-        applicant: _s(data.applicant),
-        email: _s(data.email),
-        phone: _s(data.phone),
-        remark: _s(data.remark),
-        products
-      }),
+      payload: JSON.stringify(payload),
       muteHttpExceptions:true
     });
   }catch(e){
