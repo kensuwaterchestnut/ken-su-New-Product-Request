@@ -2,7 +2,7 @@
 const SHEET_ID = '<<你的 Google Sheet ID>>';          // 目標試算表
 const SHEET_NAME = '表單';                             // 工作表名稱（不存在會自動建立）
 const DRIVE_FOLDER_ID = '<<你的圖片上傳資料夾 ID>>';    // Google Drive 目的資料夾
-const MAKE_WEBHOOK_URL = 'https://hook.eu2.make.com/mxd447qyeae62is1m1vsutndp3bqhudf'; // 你提供的 URL
+const MAKE_WEBHOOK_URL = 'https://hook.eu2.make.com/ys72eapfco7huad511tph2z91rea6ygc'; // 你提供的 URL
 /* ================================================= */
 
 const ALLOWED_MIME = new Set(['image/jpeg','image/png','image/webp','image/gif']);
