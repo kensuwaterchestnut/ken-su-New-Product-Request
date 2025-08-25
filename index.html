@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -6,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>新商品申請</title>
 <style>
-:root{--border:#e5e7eb;--muted:#64748b;--text:#0f172a;--brand:#2563eb;--bad:#dc2626;--ok:#059669;--bg:#f8fafc;--surface:#fff}
+:root{--border:#e5e7eb;--muted:#64748b;--text:#0f172a;--brand:#2563eb;--bad:#dc2626;--bg:#f8fafc;--surface:#fff}
 *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans TC","Helvetica Neue",Arial,sans-serif}
 .wrap{max-width:900px;margin:22px auto;padding:0 12px}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 8px 20px rgba(0,0,0,.06);padding:18px}
@@ -20,24 +19,19 @@ h1{margin:0 0 6px;text-align:center;font-size:22px} h1 span{color:var(--brand)}
 .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
 .btn{cursor:pointer;flex:1;min-width:140px;border-radius:12px;padding:12px 14px;font-weight:700;border:1px solid var(--border);background:#fff}
 .btn-primary{background:var(--brand);color:#fff;border-color:var(--brand)} .btn-danger{border-color:#fecaca;color:#b91c1c}
-.small{font-size:12px;color:var(--muted)} .error{color:var(--bad)} .ok{color:var(--ok)}
+.small{font-size:12px;color:var(--muted)} .error{color:var(--bad)}
 .product{border:1px dashed var(--border);border-radius:12px;padding:12px;margin:8px 0;background:#fff}
-.preview{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
-.thumb{position:relative}
-.thumb img{width:96px;height:96px;object-fit:cover;border:1px solid var(--border);border-radius:10px;display:block}
-.thumb button{position:absolute;right:4px;top:4px;border:none;border-radius:999px;width:24px;height:24px;background:#0009;color:#fff;cursor:pointer;font-weight:700}
 @media (max-width:720px){.grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="card">
-    <h1>🆕 <span>啃酥新商品申請</span></h1>
-    <p class="hint">所有欄位必填；每個品項至少 1 張圖片。</p>
+    <h1>🆕 <span>新商品申請</span></h1>
+    <p class="hint">純前端（GitHub Pages）→ Make Webhook → EmailJS 寄審核信；所有欄位必填。</p>
     <div class="hr"></div>
 
     <form id="f" novalidate>
-      <!-- 共同欄位 -->
       <div class="grid">
         <div><div class="label">分店/單位 *</div><input class="input" name="store" required placeholder="例如：啃酥總部-小洋"></div>
         <div><div class="label">申請人 *</div><input class="input" name="applicant" required placeholder="你的姓名"></div>
@@ -47,8 +41,6 @@ h1{margin:0 0 6px;text-align:center;font-size:22px} h1 span{color:var(--brand)}
       </div>
 
       <div class="hr"></div>
-
-      <!-- 品項 -->
       <div class="label">申請品項 *</div>
       <div id="products"></div>
       <div class="actions"><button class="btn" type="button" id="add">＋新增一個品項</button></div>
@@ -63,12 +55,11 @@ h1{margin:0 0 6px;text-align:center;font-size:22px} h1 span{color:var(--brand)}
     <div id="done" style="display:none;text-align:center;padding:16px">
       <h3>✅ 已送出</h3>
       <p class="small">我們已收到你的申請，請留意審核通知。</p>
-      <div id="applyNo" class="small ok" style="margin-top:6px;"></div>
+      <div id="applyNo" class="small" style="margin-top:6px;"></div>
     </div>
   </div>
 </div>
 
-<!-- 品項卡模板 -->
 <template id="tpl">
   <div class="product">
     <div class="grid">
@@ -91,100 +82,36 @@ h1{margin:0 0 6px;text-align:center;font-size:22px} h1 span{color:var(--brand)}
         </select>
       </div>
       <div><div class="label">預計上架日 *</div><input class="input p-launch" type="date" required></div>
-
-      <!-- 圖片 -->
-      <div class="grid-full">
-        <div class="label">商品圖片（至少 1 張）*</div>
-        <input class="input p-files" type="file" accept="image/*" multiple>
-        <div class="preview p-preview"></div>
-      </div>
     </div>
     <div class="actions"><button class="btn btn-danger" type="button" onclick="removeProduct(this)">刪除此品項</button></div>
   </div>
 </template>
 
 <script>
-/* ========= 你可能會改的參數 ========= */
 const MAKE_WEBHOOK_URL = "https://hook.eu2.make.com/ys72eapfco7huad511tph2z91rea6ygc"; // 你的 Make Webhook
-const DEFAULT_NOTIFY_EMAIL = "review@yourdomain.com"; // TODO: 內部通知信箱（如要寄給申請人用 f.email 即可）
-/* ================================== */
+const f = document.getElementById('f');
+const addBtn = document.getElementById('add');
+const productsBox = document.getElementById('products');
+const tpl = document.getElementById('tpl');
+const msg = document.getElementById('msg');
+const submitBtn = document.getElementById('submitBtn');
+const done = document.getElementById('done');
+const applyNoEl = document.getElementById('applyNo');
 
-// 小工具
 function uuid(){return'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0,v=c=='x'?r:(r&0x3|0x8);return v.toString(16);});}
-function esc(s){return String(s||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]);}
-function readAsDataURL(file){return new Promise((resolve,reject)=>{const fr=new FileReader();fr.onload=e=>resolve(e.target.result);fr.onerror=reject;fr.readAsDataURL(file);});}
-// 壓縮：長邊 ≤ 1280，品質 0.85
-function compressDataURL(dataURL, mime){return new Promise((resolve)=>{const img=new Image();img.onload=()=>{const max=1280;let w=img.naturalWidth,h=img.naturalHeight;if(Math.max(w,h)>max){if(w>h){h=Math.round(h*(max/w));w=max;}else{w=Math.round(w*(max/h));h=max;}}const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);resolve(c.toDataURL(mime||'image/jpeg',0.85));};img.src=dataURL;});}
-
-// DOM
-const f=document.getElementById('f');
-const addBtn=document.getElementById('add');
-const productsBox=document.getElementById('products');
-const tpl=document.getElementById('tpl');
-const msg=document.getElementById('msg');
-const submitBtn=document.getElementById('submitBtn');
-const done=document.getElementById('done');
-const applyNoEl=document.getElementById('applyNo');
-
-// 品項行為
-function addProduct(){
-  const node=tpl.content.cloneNode(true);
-  const card=node.querySelector('.product');
-  card.imageList=[];
-
-  const input=card.querySelector('.p-files');
-  const prev=card.querySelector('.p-preview');
-
-  function renderPreview(){
-    prev.innerHTML='';
-    card.imageList.forEach((imgObj,idx)=>{
-      const wrap=document.createElement('div');wrap.className='thumb';
-      const img=document.createElement('img');img.src=imgObj.base64;
-      const del=document.createElement('button');del.type='button';del.textContent='×';del.title='移除';
-      del.onclick=()=>{card.imageList.splice(idx,1);renderPreview();};
-      wrap.appendChild(img);wrap.appendChild(del);prev.appendChild(wrap);
-    });
-  }
-
-  input.addEventListener('change', async ()=>{
-    const files=Array.from(input.files||[]);
-    for(const f of files){
-      const raw=await readAsDataURL(f);
-      const downsized=await compressDataURL(raw,f.type);
-      card.imageList.push({name:f.name,type:f.type||'image/jpeg',base64:downsized});
-    }
-    input.value=''; renderPreview();
-  });
-
-  productsBox.appendChild(node);
-}
+function addProduct(){ productsBox.appendChild(tpl.content.cloneNode(true)); }
 function removeProduct(btn){
-  const card=btn.closest('.product');
-  if(productsBox.querySelectorAll('.product').length<=1){alert('至少需要一個品項');return;}
+  const card = btn.closest('.product');
+  if (productsBox.querySelectorAll('.product').length <= 1) { alert('至少需要一個品項'); return; }
   card.remove();
 }
-window.removeProduct=removeProduct; // 讓 inline onclick 可用
 addBtn.addEventListener('click', addProduct);
-addProduct(); // 預設一張
+document.getElementById('resetBtn').addEventListener('click', ()=>{ f.reset(); productsBox.innerHTML=''; addProduct(); msg.textContent=''; });
 
-// 驗證
-function validate(){
-  const need=[f.store,f.applicant,f.email,f.phone,f.remark];
-  for(const el of need){ if(!el.value.trim()) return '請完整填寫共同欄位'; }
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.value.trim())) return 'Email 格式不正確';
-  const cards=productsBox.querySelectorAll('.product'); if(!cards.length) return '請至少新增一個品項';
-  for(const card of cards){
-    const req=['.p-name','.p-spec','.p-price','.p-cost','.p-veg','.p-allg','.p-ings','.p-life','.p-store','.p-supply','.p-launch'];
-    for(const sel of req){ const el=card.querySelector(sel); if(!el||!String(el.value||'').trim()) return '每個品項所有欄位皆為必填'; }
-    if(!card.imageList||!card.imageList.length) return '每個品項至少需 1 張圖片';
-  }
-  return '';
-}
-
-// 組信件 HTML（先不含圖片，圖片會由 Make 上傳後再組）
+function esc(s){return String(s||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
 function buildEmailHTML(payload){
   const {apply_no,store,applicant,email,phone,remark,products=[]}=payload;
-  let html=`
+  let html = `
     <h2 style="margin:0 0 6px;">新商品申請</h2>
     <p style="margin:0 0 8px;">
       <b>分店：</b>${esc(store)}<br>
@@ -194,7 +121,7 @@ function buildEmailHTML(payload){
     </p>
     <hr style="border:none;border-top:1px solid #eee;margin:10px 0;">`;
   products.forEach((p,i)=>{
-    html+=`
+    html += `
       <h3 style="margin:10px 0 4px;">${i+1}. ${esc(p.product_name)}</h3>
       <p style="margin:0 0 8px;color:#444;line-height:1.6;">
         規格：${esc(p.spec)}｜建議售價：${esc(p.price_suggest)}｜成本：${esc(p.cost)}<br>
@@ -207,60 +134,78 @@ function buildEmailHTML(payload){
   return html;
 }
 
-// 蒐集 payload（把圖片 base64 前綴拿掉，縮小傳輸）
 function gather(){
-  const products=Array.from(productsBox.querySelectorAll('.product')).map(card=>{
-    const get=sel=>card.querySelector(sel).value.trim();
-    const images=(card.imageList||[]).map(x=>{
-      const m=String(x.base64).split(',');
-      return {name:x.name,mime:x.type,base64:m.length>1?m[1]:m[0]};
-    });
-    return{
+  const products = Array.from(productsBox.querySelectorAll('.product')).map(card=>{
+    const get = sel => card.querySelector(sel).value.trim();
+    return {
       product_name:get('.p-name'), spec:get('.p-spec'),
       price_suggest:get('.p-price'), cost:get('.p-cost'),
       vegetarian:card.querySelector('.p-veg').value,
       allergens:get('.p-allg'), ingredients:get('.p-ings'),
       shelf_life:get('.p-life'), storage:get('.p-store'),
       supply_type:card.querySelector('.p-supply').value,
-      launch_date:card.querySelector('.p-launch').value,
-      images
+      launch_date:card.querySelector('.p-launch').value
     };
   });
-  const apply_no=uuid();
-  const payload={
+  const apply_no = uuid();
+  const payload = {
     type:"new_product_application",
     apply_no,
-    store:f.store.value.trim(),
-    applicant:f.applicant.value.trim(),
-    email:f.email.value.trim(),
-    phone:f.phone.value.trim(),
-    remark:f.remark.value.trim(),
+    store: f.store.value.trim(),
+    applicant: f.applicant.value.trim(),
+    email: f.email.value.trim(),
+    phone: f.phone.value.trim(),
+    remark: f.remark.value.trim(),
     products
   };
-  // TODO: 如要寄給申請人：改成 payload.email_to = payload.email
-  payload.email_to = DEFAULT_NOTIFY_EMAIL;
   payload.email_subject = `新商品申請｜${payload.store}｜${apply_no}`;
-  payload.email_html = buildEmailHTML(payload); // 先不含圖片
+  payload.email_to = f.email.value.trim(); // 若要固定內部信箱：改成 "review@yourdomain.com"
+  payload.email_html = buildEmailHTML(payload);
   return payload;
 }
 
-// 送出
-f.addEventListener('submit', async (e)=>{
-  e.preventDefault(); msg.textContent=''; submitBtn.disabled=true;
-  const err=validate(); if(err){ msg.textContent='⚠️ '+err; submitBtn.disabled=false; return; }
+function validate(){
+  const need = [f.store, f.applicant, f.email, f.phone, f.remark];
+  for (const el of need){ if(!el.value.trim()) return '請完整填寫共同欄位'; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.value.trim())) return 'Email 格式不正確';
+  const cards = productsBox.querySelectorAll('.product');
+  if(!cards.length) return '請至少新增一個品項';
+  for (const card of cards){
+    const req = ['.p-name','.p-spec','.p-price','.p-cost','.p-veg','.p-allg','.p-ings','.p-life','.p-store','.p-supply','.p-launch'];
+    for (const sel of req){
+      const el = card.querySelector(sel);
+      if(!el || !String(el.value||'').trim()) return '每個品項所有欄位皆為必填';
+    }
+  }
+  return '';
+}
 
-  const payload=gather();
+f.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  msg.textContent = '';
+  const err = validate();
+  if (err){ msg.textContent = '⚠️ ' + err; return; }
+
+  const payload = gather();
+  submitBtn.disabled = true;
   try{
-    const res=await fetch(MAKE_WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-    if(!res.ok) throw new Error('Make 回應狀態碼：'+res.status);
+    const res = await fetch(MAKE_WEBHOOK_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error('Make 回應狀態碼：'+res.status);
     f.style.display='none'; done.style.display='block';
-    applyNoEl.textContent='申請編號：'+payload.apply_no;
+    applyNoEl.textContent = '申請編號：' + payload.apply_no;
   }catch(e){
-    msg.innerHTML=`<span class="error">❌ 送出失敗：</span>${e.message||e}`;
+    msg.innerHTML = `<span class="error">❌ 送出失敗：</span>${e.message||e}`;
   }finally{
-    submitBtn.disabled=false;
+    submitBtn.disabled = false;
   }
 });
+
+// 預設先一張
+addProduct();
 </script>
 </body>
 </html>
