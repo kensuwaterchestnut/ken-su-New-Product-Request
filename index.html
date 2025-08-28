@@ -112,8 +112,8 @@ h1 span{color:var(--brand)}
 <script>
 const MAKE_WEBHOOK_URL = "https://hook.eu2.make.com/ys72eapfco7huad511tph2z91rea6ygc";
 const EMAILJS_SERVICE_ID = "service_qa4j2da";
-const EMAILJS_TEMPLATE_ID = "template_m1d2y4g";
-const EMAILJS_PUBLIC_KEY = "nMamM2Ecz2ztnkCOV";
+const EMAILJS_TEMPLATE_ID = "template_ceydmzp";
+const EMAILJS_USER_ID = "f5omy7Am47n3EeMYtS66J"; // 用私鑰
 
 const f = document.getElementById('f');
 const addBtn = document.getElementById('add');
@@ -144,6 +144,7 @@ function compressImage(file) {
 }
 
 function uuid(){return'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0,v=c=='x'?r:(r&0x3|0x8);return v.toString(16);});}
+
 function addProduct(){
   const node = tpl.content.cloneNode(true);
   const input = node.querySelector('.p-img');
@@ -173,16 +174,26 @@ function addProduct(){
   });
   productsBox.appendChild(node);
 }
+
 function removeProduct(btn){
   const card=btn.closest('.product');
-  if(productsBox.querySelectorAll('.product').length<=1){alert('至少需要一個品項');return;}
+  if(productsBox.querySelectorAll('.product').length<=1){
+    alert('至少需要一個品項');
+    return;
+  }
   card.remove();
 }
+
 addBtn.addEventListener('click', addProduct);
 document.getElementById('resetBtn').addEventListener('click', ()=>{
-  f.reset();productsBox.innerHTML='';addProduct();msg.textContent='';
+  f.reset();
+  productsBox.innerHTML='';
+  addProduct();
+  msg.textContent='';
 });
+
 function esc(s){return String(s||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
+
 async function buildEmailHTML(payload){
   const {apply_no,store,applicant,email,phone,remark,products=[]}=payload;
   let html=`<h2>新商品申請</h2>
@@ -207,6 +218,7 @@ async function buildEmailHTML(payload){
   }
   return html;
 }
+
 async function gather(){
   const products=[];
   for(const card of productsBox.querySelectorAll('.product')){
@@ -240,7 +252,7 @@ async function gather(){
   payload.emailjs={
     service_id:EMAILJS_SERVICE_ID,
     template_id:EMAILJS_TEMPLATE_ID,
-    public_key:EMAILJS_PUBLIC_KEY,
+    user_id:EMAILJS_USER_ID,
     template_params:{
       subject:payload.email_subject,
       store:payload.store,
@@ -254,9 +266,12 @@ async function gather(){
   };
   return payload;
 }
+
 function validate(){
   const need=[f.store,f.applicant,f.email,f.phone,f.remark];
-  for(const el of need){if(!el.value.trim())return'請完整填寫共同欄位';}
+  for(const el of need){
+    if(!el.value.trim())return'請完整填寫共同欄位';
+  }
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.value.trim()))return'Email 格式不正確';
   const cards=productsBox.querySelectorAll('.product');
   if(!cards.length)return'請至少新增一個品項';
@@ -269,18 +284,33 @@ function validate(){
   }
   return'';
 }
+
 f.addEventListener('submit',async e=>{
-  e.preventDefault();msg.textContent='';
-  const err=validate();if(err){msg.textContent='⚠️ '+err;return;}
+  e.preventDefault();
+  msg.textContent='';
+  const err=validate();
+  if(err){msg.textContent='⚠️ '+err;return;}
   const payload=await gather();
   submitBtn.disabled=true;
   try{
+    // 1. 送到 Make Webhook
     const res=await fetch(MAKE_WEBHOOK_URL,{
-      method:'POST',headers:{'Content-Type':'application/json'},
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify(payload)
     });
     if(!res.ok)throw new Error('Make 回應狀態碼：'+res.status);
-    f.style.display='none';done.style.display='block';
+
+    // 2. EmailJS API 寄信
+    const emailRes=await fetch("https://api.emailjs.com/api/v1.0/email/send",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(payload.emailjs)
+    });
+    if(!emailRes.ok)throw new Error('EmailJS 回應狀態碼：'+emailRes.status);
+
+    f.style.display='none';
+    done.style.display='block';
     applyNoEl.textContent='申請編號：'+payload.apply_no;
   }catch(e){
     msg.innerHTML=`<span class="error">❌ 送出失敗：</span>${e.message||e}`;
@@ -288,6 +318,7 @@ f.addEventListener('submit',async e=>{
     submitBtn.disabled=false;
   }
 });
+
 addProduct();
 </script>
 </body>
