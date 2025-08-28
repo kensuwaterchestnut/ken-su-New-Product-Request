@@ -50,11 +50,11 @@ h1 span{color:var(--brand)}
 
     <form id="f" novalidate>
       <div class="grid">
-        <div><div class="label">分店/單位 *</div><input class="input" name="store" required placeholder="例如：啃酥XX店"></div>
-        <div><div class="label">申請人 *</div><input class="input" name="applicant" required placeholder="你的姓名"></div>
-        <div><div class="label">Email *</div><input class="input" name="email" type="email" required placeholder="name@example.com"></div>
-        <div><div class="label">電話 *</div><input class="input" name="phone" required placeholder="0900-000-000"></div>
-        <div class="grid-full"><div class="label">備註 *</div><textarea class="textarea" name="remark" required placeholder="其他補充、注意事項…"></textarea></div>
+        <div><div class="label">分店/單位 *</div><input class="input" name="store" required></div>
+        <div><div class="label">申請人 *</div><input class="input" name="applicant" required></div>
+        <div><div class="label">Email *</div><input class="input" name="email" type="email" required></div>
+        <div><div class="label">電話 *</div><input class="input" name="phone" required></div>
+        <div class="grid-full"><div class="label">備註 *</div><textarea class="textarea" name="remark" required></textarea></div>
       </div>
 
       <div class="hr"></div>
@@ -89,10 +89,10 @@ h1 span{color:var(--brand)}
           <option value="">請選擇</option><option>葷食</option><option>蛋奶素</option><option>奶素</option><option>蛋素</option><option>全素</option>
         </select>
       </div>
-      <div><div class="label">過敏原 *</div><input class="input p-allg" required placeholder="蛋, 奶, 花生…"></div>
-      <div class="grid-full"><div class="label">成分/原料 *</div><textarea class="textarea p-ings" required placeholder="主要原料…"></textarea></div>
-      <div><div class="label">保存期限 *</div><input class="input p-life" required placeholder="常溫/冷藏/冷凍 + 月數"></div>
-      <div><div class="label">保存方式 *</div><input class="input p-store" required placeholder="常溫/冷藏/冷凍"></div>
+      <div><div class="label">過敏原 *</div><input class="input p-allg" required></div>
+      <div class="grid-full"><div class="label">成分/原料 *</div><textarea class="textarea p-ings" required></textarea></div>
+      <div><div class="label">保存期限 *</div><input class="input p-life" required></div>
+      <div><div class="label">保存方式 *</div><input class="input p-store" required></div>
       <div><div class="label">供應型態 *</div>
         <select class="select p-supply" required>
           <option>常態供應</option><option>季節限定</option><option>試賣</option>
@@ -111,9 +111,6 @@ h1 span{color:var(--brand)}
 
 <script>
 const MAKE_WEBHOOK_URL = "https://hook.eu2.make.com/ys72eapfco7huad511tph2z91rea6ygc";
-const EMAILJS_SERVICE_ID = "service_qa4j2da";
-const EMAILJS_TEMPLATE_ID = "template_ceydmzp";
-const EMAILJS_USER_ID = "f5omy7Am47n3EeMYtS66J"; // 用私鑰
 
 const f = document.getElementById('f');
 const addBtn = document.getElementById('add');
@@ -124,54 +121,10 @@ const submitBtn = document.getElementById('submitBtn');
 const done = document.getElementById('done');
 const applyNoEl = document.getElementById('applyNo');
 
-// 壓縮圖片到寬800px
-function compressImage(file) {
-  return new Promise(resolve => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      const scale = 800 / img.width;
-      canvas.width = img.width > 800 ? 800 : img.width;
-      canvas.height = img.width > 800 ? img.height * scale : img.height;
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      resolve(canvas.toDataURL(file.type, 0.8));
-    };
-    const reader = new FileReader();
-    reader.onload = e => img.src = e.target.result;
-    reader.readAsDataURL(file);
-  });
-}
-
 function uuid(){return'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0,v=c=='x'?r:(r&0x3|0x8);return v.toString(16);});}
 
 function addProduct(){
   const node = tpl.content.cloneNode(true);
-  const input = node.querySelector('.p-img');
-  const preview = node.querySelector('.preview');
-  input.addEventListener('change',()=>{
-    preview.innerHTML='';
-    Array.from(input.files).forEach((file, idx)=>{
-      const reader=new FileReader();
-      reader.onload=e=>{
-        const img=document.createElement('img');
-        img.src=e.target.result;
-        const del=document.createElement('button');
-        del.textContent='刪除';
-        del.onclick=()=>{
-          const files=[...input.files];
-          files.splice(idx,1);
-          const dt=new DataTransfer();
-          files.forEach(f=>dt.items.add(f));
-          input.files=dt.files;
-          img.remove();del.remove();
-        };
-        preview.appendChild(img);
-        preview.appendChild(del);
-      };
-      reader.readAsDataURL(file);
-    });
-  });
   productsBox.appendChild(node);
 }
 
@@ -208,13 +161,6 @@ async function buildEmailHTML(payload){
       成分：${esc(p.ingredients)}<br>
       保存期限：${esc(p.shelf_life)}｜保存方式：${esc(p.storage)}<br>
       供應型態：${esc(p.supply_type)}｜預計上架日：${esc(p.launch_date)}</p>`;
-    if(p.images && p.images.length){
-      html += `<div>`;
-      for(const img of p.images){
-        html += `<img src="${img}" style="width:120px;height:auto;margin:4px;border-radius:8px;border:1px solid #ddd;">`;
-      }
-      html += `</div>`;
-    }
   }
   return html;
 }
@@ -223,8 +169,6 @@ async function gather(){
   const products=[];
   for(const card of productsBox.querySelectorAll('.product')){
     const get=sel=>card.querySelector(sel).value.trim();
-    const files=card.querySelector('.p-img').files;
-    const images=await Promise.all([...files].map(f=>compressImage(f)));
     products.push({
       product_name:get('.p-name'),spec:get('.p-spec'),
       price_suggest:get('.p-price'),cost:get('.p-cost'),
@@ -233,7 +177,6 @@ async function gather(){
       shelf_life:get('.p-life'),storage:get('.p-store'),
       supply_type:card.querySelector('.p-supply').value,
       launch_date:card.querySelector('.p-launch').value,
-      images
     });
   }
   const apply_no=uuid();
@@ -249,21 +192,6 @@ async function gather(){
   };
   payload.email_subject=`新商品申請｜${payload.store}｜${apply_no}`;
   payload.products_html=await buildEmailHTML(payload);
-  payload.emailjs={
-    service_id:EMAILJS_SERVICE_ID,
-    template_id:EMAILJS_TEMPLATE_ID,
-    user_id:EMAILJS_USER_ID,
-    template_params:{
-      subject:payload.email_subject,
-      store:payload.store,
-      applicant:payload.applicant,
-      applicant_email:payload.email,
-      applicant_phone:payload.phone,
-      remark:payload.remark,
-      apply_no:payload.apply_no,
-      products_html:payload.products_html
-    }
-  };
   return payload;
 }
 
@@ -293,22 +221,12 @@ f.addEventListener('submit',async e=>{
   const payload=await gather();
   submitBtn.disabled=true;
   try{
-    // 1. 送到 Make Webhook
     const res=await fetch(MAKE_WEBHOOK_URL,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify(payload)
     });
     if(!res.ok)throw new Error('Make 回應狀態碼：'+res.status);
-
-    // 2. EmailJS API 寄信
-    const emailRes=await fetch("https://api.emailjs.com/api/v1.0/email/send",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify(payload.emailjs)
-    });
-    if(!emailRes.ok)throw new Error('EmailJS 回應狀態碼：'+emailRes.status);
-
     f.style.display='none';
     done.style.display='block';
     applyNoEl.textContent='申請編號：'+payload.apply_no;
