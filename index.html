@@ -37,7 +37,7 @@ h1 span{color:var(--brand)}
 <div class="wrap">
   <div class="card">
     <h1>🆕 <span>啃酥新商品申請</span></h1>
-    <p class="hint">所有欄位必填，支援拍照上傳。</p>
+    <p class="hint">所有欄位必填</p>
     <div class="hr"></div>
 
     <form id="f" novalidate>
@@ -94,10 +94,11 @@ h1 span{color:var(--brand)}
       </div>
       <div><div class="label">預計上架日 *</div><input class="input p-launch" type="date" required></div>
 
-      <div class="grid-full">
-        <div class="label">商品圖片（拍照上傳成分表）</div>
-        <input class="input p-img" type="file" accept="image/*" capture="environment" multiple>
-        <div class="preview"></div>
+    <div class="grid-full">
+  <div class="label">商品圖片（拍照或選擇相簿上傳）</div>
+  <input class="input p-img" type="file" accept="image/*" multiple>
+  <div class="preview"></div>
+</div>
       </div>
     </div>
     <div class="actions"><button class="btn btn-danger" type="button" onclick="removeProduct(this)">刪除此品項</button></div>
