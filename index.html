@@ -88,7 +88,13 @@ h1{margin:0 0 6px;text-align:center;font-size:22px} h1 span{color:var(--brand)}
 </template>
 
 <script>
+// ====== 需要你確認的常數（已填入你提供的資料）======
 const MAKE_WEBHOOK_URL = "https://hook.eu2.make.com/ys72eapfco7huad511tph2z91rea6ygc"; // 你的 Make Webhook
+const EMAILJS_SERVICE_ID = "service_qa4j2da";
+const EMAILJS_TEMPLATE_ID = "template_m1d2y4g";
+const EMAILJS_PUBLIC_KEY = "nMamM2Ecz2ztnkCOV";
+// ======================================================
+
 const f = document.getElementById('f');
 const addBtn = document.getElementById('add');
 const productsBox = document.getElementById('products');
@@ -109,6 +115,8 @@ addBtn.addEventListener('click', addProduct);
 document.getElementById('resetBtn').addEventListener('click', ()=>{ f.reset(); productsBox.innerHTML=''; addProduct(); msg.textContent=''; });
 
 function esc(s){return String(s||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
+
+// 產生給 email 用的 HTML（你可以於 EmailJS 模板中用 {{products_html}} 接）
 function buildEmailHTML(payload){
   const {apply_no,store,applicant,email,phone,remark,products=[]}=payload;
   let html = `
@@ -158,9 +166,35 @@ function gather(){
     remark: f.remark.value.trim(),
     products
   };
+
+  // ====== Email 主旨 / 內容 ======
   payload.email_subject = `新商品申請｜${payload.store}｜${apply_no}`;
-  payload.email_to = f.email.value.trim(); // 若要固定內部信箱：改成 "review@yourdomain.com"
-  payload.email_html = buildEmailHTML(payload);
+  // 可改成固定內部審核信箱；目前先寄申請人（EmailJS 模板也可忽略此欄）
+  payload.to_email = payload.email;
+
+  // 供 EmailJS 模板使用的 HTML 區塊
+  payload.products_html = buildEmailHTML(payload);
+
+  // ====== 打包 EmailJS 需要的參數（給 Make 轉發到 EmailJS）======
+  payload.emailjs = {
+    service_id: EMAILJS_SERVICE_ID,
+    template_id: EMAILJS_TEMPLATE_ID,
+    public_key: EMAILJS_PUBLIC_KEY,
+    // 這些欄位你要在 EmailJS 模板裡建立對應的變數（例如：{{subject}}、{{store}}、{{applicant}}、{{to_email}}、{{products_html}} ...）
+    template_params: {
+      subject: payload.email_subject,
+      to_email: payload.to_email,
+      store: payload.store,
+      applicant: payload.applicant,
+      applicant_email: payload.email,
+      applicant_phone: payload.phone,
+      remark: payload.remark,
+      apply_no: payload.apply_no,
+      products_json: JSON.stringify(products), // 若模板想自行迭代也可用這欄
+      products_html: payload.products_html
+    }
+  };
+
   return payload;
 }
 
@@ -188,6 +222,7 @@ f.addEventListener('submit', async (e)=>{
 
   const payload = gather();
   submitBtn.disabled = true;
+
   try{
     const res = await fetch(MAKE_WEBHOOK_URL, {
       method:'POST',
