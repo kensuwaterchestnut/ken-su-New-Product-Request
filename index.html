@@ -7,7 +7,7 @@
 <style>
 :root {
   --border:#e5e7eb; --muted:#64748b; --text:#0f172a;
-  --brand:#2563eb; --bad:#dc2626; --bg:#f8fafc; --surface:#fff
+  --brand:#2563eb; --bad:#dc2626; --bg:#f8fafc; --surface:#fff;
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);
@@ -32,7 +32,8 @@ h1 span{color:var(--brand)}
   padding:12px 14px;font-weight:700;border:1px solid var(--border);background:#fff}
 .btn-primary{background:var(--brand);color:#fff;border-color:var(--brand)}
 .btn-danger{border-color:#fecaca;color:#b91c1c}
-.small{font-size:12px;color:var(--muted)} .error{color:var(--bad)}
+.small{font-size:12px;color:var(--muted)}
+.error{color:var(--bad)}
 .product{border:1px dashed var(--border);border-radius:12px;padding:12px;margin:8px 0;background:#fff}
 .preview{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
 .preview img{width:80px;height:80px;border-radius:8px;object-fit:cover;border:1px solid #ddd}
@@ -123,6 +124,25 @@ const submitBtn = document.getElementById('submitBtn');
 const done = document.getElementById('done');
 const applyNoEl = document.getElementById('applyNo');
 
+// 壓縮圖片到寬800px
+function compressImage(file) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      const scale = 800 / img.width;
+      canvas.width = img.width > 800 ? 800 : img.width;
+      canvas.height = img.width > 800 ? img.height * scale : img.height;
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL(file.type, 0.8));
+    };
+    const reader = new FileReader();
+    reader.onload = e => img.src = e.target.result;
+    reader.readAsDataURL(file);
+  });
+}
+
 function uuid(){return'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0,v=c=='x'?r:(r&0x3|0x8);return v.toString(16);});}
 function addProduct(){
   const node = tpl.content.cloneNode(true);
@@ -131,7 +151,7 @@ function addProduct(){
   input.addEventListener('change',()=>{
     preview.innerHTML='';
     Array.from(input.files).forEach((file, idx)=>{
-      const reader = new FileReader();
+      const reader=new FileReader();
       reader.onload=e=>{
         const img=document.createElement('img');
         img.src=e.target.result;
@@ -163,14 +183,14 @@ document.getElementById('resetBtn').addEventListener('click', ()=>{
   f.reset();productsBox.innerHTML='';addProduct();msg.textContent='';
 });
 function esc(s){return String(s||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
-function buildEmailHTML(payload){
+async function buildEmailHTML(payload){
   const {apply_no,store,applicant,email,phone,remark,products=[]}=payload;
   let html=`<h2>新商品申請</h2>
     <p><b>分店：</b>${esc(store)}<br>
     <b>申請人：</b>${esc(applicant)}（${esc(email)} / ${esc(phone)}）<br>
     <b>申請編號：</b>${esc(apply_no)}<br>
     <b>備註：</b>${esc(remark)}</p><hr>`;
-  products.forEach((p,i)=>{
+  for (const [i,p] of products.entries()){
     html+=`<h3>${i+1}. ${esc(p.product_name)}</h3>
       <p>規格：${esc(p.spec)}｜建議售價：${esc(p.price_suggest)}｜成本：${esc(p.cost)}<br>
       素別：${esc(p.vegetarian)}｜過敏原：${esc(p.allergens)}<br>
@@ -179,19 +199,21 @@ function buildEmailHTML(payload){
       供應型態：${esc(p.supply_type)}｜預計上架日：${esc(p.launch_date)}</p>`;
     if(p.images && p.images.length){
       html += `<div>`;
-      p.images.forEach(img=>{
+      for(const img of p.images){
         html += `<img src="${img}" style="width:120px;height:auto;margin:4px;border-radius:8px;border:1px solid #ddd;">`;
-      });
+      }
       html += `</div>`;
     }
-  });
+  }
   return html;
 }
-function gather(){
-  const products=Array.from(productsBox.querySelectorAll('.product')).map(card=>{
+async function gather(){
+  const products=[];
+  for(const card of productsBox.querySelectorAll('.product')){
     const get=sel=>card.querySelector(sel).value.trim();
-    const images=Array.from(card.querySelector('.p-img').files).map(f=>URL.createObjectURL(f));
-    return{
+    const files=card.querySelector('.p-img').files;
+    const images=await Promise.all([...files].map(f=>compressImage(f)));
+    products.push({
       product_name:get('.p-name'),spec:get('.p-spec'),
       price_suggest:get('.p-price'),cost:get('.p-cost'),
       vegetarian:card.querySelector('.p-veg').value,
@@ -200,8 +222,8 @@ function gather(){
       supply_type:card.querySelector('.p-supply').value,
       launch_date:card.querySelector('.p-launch').value,
       images
-    };
-  });
+    });
+  }
   const apply_no=uuid();
   const payload={
     type:"new_product_application",
@@ -214,7 +236,7 @@ function gather(){
     products
   };
   payload.email_subject=`新商品申請｜${payload.store}｜${apply_no}`;
-  payload.products_html=buildEmailHTML(payload);
+  payload.products_html=await buildEmailHTML(payload);
   payload.emailjs={
     service_id:EMAILJS_SERVICE_ID,
     template_id:EMAILJS_TEMPLATE_ID,
@@ -250,7 +272,7 @@ function validate(){
 f.addEventListener('submit',async e=>{
   e.preventDefault();msg.textContent='';
   const err=validate();if(err){msg.textContent='⚠️ '+err;return;}
-  const payload=gather();
+  const payload=await gather();
   submitBtn.disabled=true;
   try{
     const res=await fetch(MAKE_WEBHOOK_URL,{
