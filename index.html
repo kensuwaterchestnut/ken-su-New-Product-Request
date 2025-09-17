@@ -127,9 +127,7 @@ const applyNoEl = document.getElementById('applyNo');
 /* ===== Utils ===== */
 function uuid(){return'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0,v=c=='x'?r:(r&0x3|0x8);return v.toString(16);});}
 function esc(s){return String(s||'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));}
-function minifyHTML(html){
-  return html.replace(/=\"/g,"='").replace(/\"/g,"'").replace(/\r?\n|\r|\t/g,' ').replace(/\s{2,}/g,' ').trim();
-}
+function minifyHTML(html){return html.replace(/=\"/g,"='").replace(/\"/g,"'").replace(/\r?\n|\r|\t/g,' ').replace(/\s{2,}/g,' ').trim();}
 function byteLength(str){ return new TextEncoder().encode(str).length; }
 
 /* 圖片壓縮（指定 maxW/品質） */
@@ -167,7 +165,7 @@ async function autoCompressImage(file){
   }
 }
 
-/* 圖片預覽與刪除（保持你原邏輯） */
+/* 圖片預覽與刪除 */
 function bindImagePreview(container) {
   const input = container.querySelector('.p-img');
   const preview = container.querySelector('.preview');
@@ -251,6 +249,22 @@ async function buildProductsHTML(payload){
   return minifyHTML(parts.join(''));
 }
 
+/* 純文字備援（給沒 HTML 的情況） */
+function buildProductsPlainText(payload){
+  const lines = [];
+  payload.products.forEach((p, i) => {
+    lines.push(
+      `${i+1}. ${p.product_name}\n` +
+      `   規格:${p.spec}  建議售價:${p.price_suggest}  成本:${p.cost}\n` +
+      `   素別:${p.vegetarian}  過敏原:${p.allergens}\n` +
+      `   成分:${p.ingredients}\n` +
+      `   保存期限:${p.shelf_life}  保存方式:${p.storage}\n` +
+      `   供應型態:${p.supply_type}  上架日:${p.launch_date}`
+    );
+  });
+  return lines.join('\n');
+}
+
 /* 收集（含圖片自動壓縮；每品項最多取前 MAX_IMAGES_PER_PRODUCT 張） */
 async function gatherRaw(){
   const products=[];
@@ -293,6 +307,7 @@ async function gatherRaw(){
   };
   payload.email_subject=`新商品申請｜${payload.store}｜${apply_no}`;
   payload.products_html = await buildProductsHTML(payload);
+  payload.products_plain = buildProductsPlainText(payload);   // << 新增
   return payload;
 }
 
@@ -302,8 +317,8 @@ async function adaptPayloadToLimit(payload){
   if (byteLength(json) <= MAX_PAYLOAD_BYTES) return payload;
 
   // Move 1: 移除 products_html（長字串）
-  const htmlBackup = payload.products_html;
   delete payload.products_html;
+  payload.products_html_omitted = true;     // << 新增
   json = JSON.stringify(payload);
   if (byteLength(json) <= MAX_PAYLOAD_BYTES) return payload;
 
@@ -386,5 +401,4 @@ f.addEventListener('submit',async e=>{
 /* 預設至少一個品項 */
 addProduct();
 </script>
-</body>
-</html>
+
