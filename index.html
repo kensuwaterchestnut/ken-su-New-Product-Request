@@ -94,11 +94,10 @@ h1 span{color:var(--brand)}
       </div>
       <div><div class="label">預計上架日 *</div><input class="input p-launch" type="date" required></div>
 
-    <div class="grid-full">
-  <div class="label">商品圖片（拍照或選擇相簿上傳）</div>
-  <input class="input p-img" type="file" accept="image/*" multiple>
-  <div class="preview"></div>
-</div>
+      <div class="grid-full">
+        <div class="label">商品圖片（拍照或選擇相簿上傳）</div>
+        <input class="input p-img" type="file" accept="image/*" capture="environment" multiple>
+        <div class="preview"></div>
       </div>
     </div>
     <div class="actions"><button class="btn btn-danger" type="button" onclick="removeProduct(this)">刪除此品項</button></div>
@@ -106,8 +105,16 @@ h1 span{color:var(--brand)}
 </template>
 
 <script>
+/* ===== 你的 Make Webhook ===== */
 const MAKE_WEBHOOK_URL = "https://hook.eu2.make.com/ys72eapfco7huad511tph2z91rea6ygc";
 
+/* ===== 可調參數（降載策略） ===== */
+const MAX_PAYLOAD_BYTES = 48000;            // 目標 < 50KB（留安全邊際）
+const IMG_MAX_W_STEP = [800, 600, 480, 360];
+const IMG_QUALITY_STEP = [0.8, 0.7, 0.6, 0.5];
+const MAX_IMAGES_PER_PRODUCT = 3;           // 每品項最多幾張
+
+/* ===== DOM ===== */
 const f = document.getElementById('f');
 const addBtn = document.getElementById('add');
 const productsBox = document.getElementById('products');
@@ -117,15 +124,19 @@ const submitBtn = document.getElementById('submitBtn');
 const done = document.getElementById('done');
 const applyNoEl = document.getElementById('applyNo');
 
-/* 產生 UUID 當申請編號 */
+/* ===== Utils ===== */
 function uuid(){return'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0,v=c=='x'?r:(r&0x3|0x8);return v.toString(16);});}
+function esc(s){return String(s||'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));}
+function minifyHTML(html){
+  return html.replace(/=\"/g,"='").replace(/\"/g,"'").replace(/\r?\n|\r|\t/g,' ').replace(/\s{2,}/g,' ').trim();
+}
+function byteLength(str){ return new TextEncoder().encode(str).length; }
 
-/* 圖片壓縮（寬度不超過 800px，品質 0.8）→ 回傳 DataURL */
-function compressImage(file) {
-  return new Promise(resolve => {
+/* 圖片壓縮（指定 maxW/品質） */
+function compressImageWith(file, maxW, quality) {
+  return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
-      const maxW = 800;
       const scale = img.width > maxW ? maxW / img.width : 1;
       const w = Math.round(img.width * scale);
       const h = Math.round(img.height * scale);
@@ -133,16 +144,30 @@ function compressImage(file) {
       const ctx = canvas.getContext('2d');
       canvas.width = w; canvas.height = h;
       ctx.drawImage(img, 0, 0, w, h);
-      // 若是 HEIC/HEIF 會讀不出來，瀏覽器多半不支援；建議使用者改拍 JPEG/PNG
-      resolve(canvas.toDataURL('image/jpeg', 0.8));
+      try { resolve(canvas.toDataURL('image/jpeg', quality)); }
+      catch (e) { reject(e); }
     };
-    const reader = new FileReader();
-    reader.onload = e => { img.src = e.target.result; };
-    reader.readAsDataURL(file);
+    const fr = new FileReader();
+    fr.onload = e => { img.src = e.target.result; };
+    fr.onerror = reject;
+    fr.readAsDataURL(file);
   });
 }
 
-/* preview/刪除：用 DataTransfer 改寫 input.files */
+/* 自動降載壓縮：套用多組寬度/品質，盡量把單張壓到 ≤30KB */
+async function autoCompressImage(file){
+  for (const maxW of IMG_MAX_W_STEP) {
+    for (const q of IMG_QUALITY_STEP) {
+      try {
+        const dataUrl = await compressImageWith(file, maxW, q);
+        if (byteLength(dataUrl) <= 30000) return dataUrl;
+        if (maxW === IMG_MAX_W_STEP.at(-1) && q === IMG_QUALITY_STEP.at(-1)) return dataUrl;
+      } catch(e){}
+    }
+  }
+}
+
+/* 圖片預覽與刪除（保持你原邏輯） */
 function bindImagePreview(container) {
   const input = container.querySelector('.p-img');
   const preview = container.querySelector('.preview');
@@ -150,16 +175,14 @@ function bindImagePreview(container) {
     preview.innerHTML = '';
     const files = Array.from(input.files);
     files.forEach((file, idx) => {
-      const reader = new FileReader();
-      reader.onload = e => {
+      const fr = new FileReader();
+      fr.onload = e => {
         const wrap = document.createElement('div');
         wrap.className = 'thumb';
         const img = document.createElement('img');
         img.src = e.target.result;
         const rm = document.createElement('button');
-        rm.className = 'rm';
-        rm.type = 'button';
-        rm.textContent = '×';
+        rm.className = 'rm'; rm.type = 'button'; rm.textContent = '×';
         rm.onclick = () => {
           const list = Array.from(input.files);
           list.splice(idx, 1);
@@ -168,59 +191,35 @@ function bindImagePreview(container) {
           input.files = dt.files;
           wrap.remove();
         };
-        wrap.appendChild(img);
-        wrap.appendChild(rm);
+        wrap.appendChild(img); wrap.appendChild(rm);
         preview.appendChild(wrap);
       };
-      reader.readAsDataURL(file);
+      fr.readAsDataURL(file);
     });
   });
 }
 
-/* 新增一個品項卡片並綁定事件 */
+/* 新增/刪除品項 */
 function addProduct(){
   const node = tpl.content.cloneNode(true);
-  const card = node.querySelector('.product');
   productsBox.appendChild(node);
-  bindImagePreview(productsBox.lastElementChild); // 綁定剛插入的卡片
+  bindImagePreview(productsBox.lastElementChild);
 }
-
-/* 刪除品項卡片 */
-function removeProduct(btn){
+function _removeProduct(btn){
   const card=btn.closest('.product');
-  if(productsBox.querySelectorAll('.product').length<=1){
-    alert('至少需要一個品項');
-    return;
-  }
+  if(productsBox.querySelectorAll('.product').length<=1){ alert('至少需要一個品項'); return; }
   card.remove();
 }
+window.removeProduct = _removeProduct;
 
-/* Reset */
 addBtn.addEventListener('click', addProduct);
 document.getElementById('resetBtn').addEventListener('click', ()=>{
-  f.reset();
-  productsBox.innerHTML='';
-  addProduct();
-  msg.textContent='';
+  f.reset(); productsBox.innerHTML=''; addProduct(); msg.textContent='';
 });
 
-/* HTML escape（不轉引號，避免重複轉義） */
-function esc(s){return String(s||'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));}
-
-/* 最後把 HTML 壓成單行、統一單引號，避免 JSON 內的控制字元 */
-function minifyHTML(html){
-  return html
-    .replace(/=\"/g,"='")      // 屬性改單引號
-    .replace(/\"/g,"'")        // 其餘雙引號→單引號
-    .replace(/\r?\n|\r|\t/g,' ') // 移除換行/Tab
-    .replace(/\s{2,}/g,' ')    // 多空白壓一個
-    .trim();
-}
-
-/* 手機友善的一卡一卡區塊（含圖片列）→ 產品 HTML（單行） */
+/* HTML 內容（給郵件/記錄） */
 async function buildProductsHTML(payload){
   const parts = [];
-  // 基本資訊區
   parts.push(
     `<div style='padding:16px 20px;font-size:14px;color:#111827;line-height:1.7'>
        <div><b>分店 / 單位：</b>${esc(payload.store)}</div>
@@ -232,8 +231,6 @@ async function buildProductsHTML(payload){
      </div>
      <div style='padding:12px 20px;font-size:15px;font-weight:700;color:#374151;background:#f9fafb;border-top:1px solid #e5e7eb;border-bottom:1px solid #e5e7eb'>申請品項</div>`
   );
-
-  // 品項卡片
   payload.products.forEach((p, i) => {
     let card =
       `<div style='margin:16px 20px;padding:14px 16px;border:1px solid #e5e7eb;border-radius:10px;background:#fff;line-height:1.6;font-size:14px;color:#111827'>
@@ -251,21 +248,22 @@ async function buildProductsHTML(payload){
     card += `</div>`;
     parts.push(card);
   });
-
   return minifyHTML(parts.join(''));
 }
 
-/* 收集表單資料 + 圖片壓縮成 DataURL */
-async function gather(){
+/* 收集（含圖片自動壓縮；每品項最多取前 MAX_IMAGES_PER_PRODUCT 張） */
+async function gatherRaw(){
   const products=[];
   for(const card of productsBox.querySelectorAll('.product')){
     const get=sel=>card.querySelector(sel).value.trim();
-    const files = card.querySelector('.p-img').files;
-    // 壓縮所有選取圖片（依序轉為 DataURL）
+    const input = card.querySelector('.p-img');
+    const files = Array.from(input.files).slice(0, MAX_IMAGES_PER_PRODUCT);
+
     const images = [];
     for (const file of files) {
-      try { images.push(await compressImage(file)); } catch(e) {}
+      try { images.push(await autoCompressImage(file)); } catch(e) {}
     }
+
     products.push({
       product_name:get('.p-name'),
       spec:get('.p-spec'),
@@ -293,15 +291,48 @@ async function gather(){
     remark:f.remark.value.trim(),
     products
   };
-
   payload.email_subject=`新商品申請｜${payload.store}｜${apply_no}`;
-  // 單行、單引號、無換行的 HTML（對 JSON 友善）
   payload.products_html = await buildProductsHTML(payload);
-
   return payload;
 }
 
-/* 必填驗證 */
+/* 把 payload 自動瘦身到限制以內 */
+async function adaptPayloadToLimit(payload){
+  let json = JSON.stringify(payload);
+  if (byteLength(json) <= MAX_PAYLOAD_BYTES) return payload;
+
+  // Move 1: 移除 products_html（長字串）
+  const htmlBackup = payload.products_html;
+  delete payload.products_html;
+  json = JSON.stringify(payload);
+  if (byteLength(json) <= MAX_PAYLOAD_BYTES) return payload;
+
+  // Move 2: 圖片只保留第一張
+  for (const p of payload.products) {
+    if (!p.images || !p.images.length) continue;
+    p.images = [p.images[0]];
+  }
+  json = JSON.stringify(payload);
+  if (byteLength(json) <= MAX_PAYLOAD_BYTES) return payload;
+
+  // Move 3: 全不傳圖片，改傳統計
+  for (const p of payload.products) {
+    const count = p.images ? p.images.length : 0;
+    delete p.images;
+    p.image_count = count;
+    p.images_omitted = true;
+  }
+  json = JSON.stringify(payload);
+  if (byteLength(json) <= MAX_PAYLOAD_BYTES) return payload;
+
+  // Move 4: 備註過長再截斷
+  if (payload.remark && payload.remark.length > 200) {
+    payload.remark = payload.remark.slice(0,200) + '…(trimmed)';
+  }
+  return payload;
+}
+
+/* 驗證 */
 function validate(){
   const need=[f.store,f.applicant,f.email,f.phone,f.remark];
   for(const el of need){ if(!el.value.trim()) return '請完整填寫共同欄位'; }
@@ -318,28 +349,33 @@ function validate(){
   return '';
 }
 
-/* 送出：丟到 Make Webhook */
+/* 送出到 Make */
 f.addEventListener('submit',async e=>{
   e.preventDefault();
   msg.textContent='';
   const err=validate();
   if(err){ msg.textContent='⚠️ '+err; return; }
 
-  const payload=await gather();
   submitBtn.disabled=true;
 
   try{
-    const res=await fetch(MAKE_WEBHOOK_URL,{
+    let payload = await gatherRaw();
+    payload = await adaptPayloadToLimit(payload);
+
+    const res = await fetch(MAKE_WEBHOOK_URL,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify(payload)
     });
     if(!res.ok) throw new Error('Make 回應狀態碼：'+res.status);
 
-    // 成功畫面
     f.style.display='none';
     done.style.display='block';
     applyNoEl.textContent='申請編號：'+payload.apply_no;
+
+    if (payload.products.some(p => p.images_omitted)) {
+      msg.innerHTML = '部分圖片為避免超過 50KB 上限已省略，客服將再向您索取原圖。';
+    }
   }catch(e){
     msg.innerHTML=`<span class="error">❌ 送出失敗：</span>${e.message||e}`;
   }finally{
@@ -347,7 +383,7 @@ f.addEventListener('submit',async e=>{
   }
 });
 
-/* 預設先一張 */
+/* 預設至少一個品項 */
 addProduct();
 </script>
 </body>
