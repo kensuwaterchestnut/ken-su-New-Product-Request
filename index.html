@@ -1,160 +1,213 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>分店新地點出攤申請</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>分店出攤申請</title>
 <style>
-  :root{--bg:#f6f7fb;--surface:#fff;--text:#111;--muted:#6b7280;
-    --brand:#111;--border:#e5e7eb;--ok:#16a34a;--bad:#dc2626;}
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--text);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans TC",Arial,sans-serif}
-  .wrap{max-width:560px;margin:0 auto;padding:20px 14px}
-  .brandbar{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:10px}
-  .brandbar img{height:40px}
-  .brandbar .title{font-weight:800;letter-spacing:.1em}
-  h1{font-size:20px;text-align:center;margin:6px 0 16px}
-  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;box-shadow:0 4px 12px rgba(0,0,0,.06);margin-bottom:14px}
-  label{display:block;font-size:14px;font-weight:600;margin:10px 0 6px}
-  input,textarea{width:100%;font-size:16px;padding:12px;border:1px solid var(--border);border-radius:10px;background:#fff}
-  textarea{min-height:84px;resize:vertical}
-  .row{display:flex;gap:10px}
-  .row>*{flex:1}
-  .btn{background:var(--brand);color:#fff;border:none;border-radius:10px;padding:12px 14px;font-size:16px;cursor:pointer}
-  .btn-ghost{background:#f1f5f9;color:#111;border:1px dashed var(--border)}
-  .status{text-align:center;margin-top:14px;font-weight:700}
-  .chip{font-size:12px;border-radius:999px;background:#eef2ff;color:#3730a3;padding:4px 8px}
-  .loc{border:1px solid var(--border);border-radius:12px;padding:12px;margin-top:10px;background:#fff}
-  .loc .hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-  .loc .del{background:#fff;border:1px solid var(--border);border-radius:999px;font-size:12px;padding:4px 8px;cursor:pointer}
-  .muted{font-size:12px;color:#6b7280}
-  footer{margin-top:18px;color:#444}
-  footer .legal{font-size:12px;color:#6b7280;line-height:1.6;text-align:center}
+  :root{
+    --bg:#f6f7fb;--surface:#fff;--text:#0f172a;--muted:#64748b;--border:#e5e7eb;
+    --brand:#111;--brand-press:#000;--radius:14px;--radius-sm:12px;
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans TC","Helvetica Neue",Arial,sans-serif}
+  .wrap{max-width:720px;margin:0 auto;padding:20px}
+  h1{font-size:22px;font-weight:800;letter-spacing:.5px;margin:4px 0 16px;text-align:center}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 10px 24px rgba(15,23,42,.06);padding:18px;margin-bottom:16px}
+  .locCard{background:#fafafa;border:1px dashed #d1d5db;border-radius:var(--radius-sm);padding:14px;margin:12px 0}
+  .sectionTitle{display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;margin:0 0 8px;color:#111}
+  label{display:block;font-weight:700;margin:10px 0 6px}
+  input,textarea{width:100%;padding:12px;border:1px solid var(--border);border-radius:12px;background:#fff;color:var(--text);outline:0;transition:border-color .15s,box-shadow .15s}
+  input::placeholder,textarea::placeholder{color:#9aa3b2}
+  input:focus,textarea:focus{border-color:#c7d2fe;box-shadow:0 0 0 4px rgba(99,102,241,.15)}
+  textarea{resize:vertical;min-height:90px;line-height:1.6}
+  .row{display:grid;grid-template-columns:repeat(12,1fr);gap:12px;align-items:flex-start}
+  .col-6{grid-column:span 6}.col-8{grid-column:span 8}.col-4{grid-column:span 4}.col-12{grid-column:span 12}
+  @media (max-width:640px){.col-6,.col-8,.col-4{grid-column:span 12}}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#f3f4f6;color:#111;border:1px solid #e5e7eb;border-radius:12px;padding:10px 14px;cursor:pointer;font-weight:700;transition:filter .15s,transform .02s}
+  .btn:hover{filter:brightness(98%)} .btn:active{transform:translateY(1px)}
+  .btn.small{padding:6px 10px;font-size:13px}
+  .btn-primary{background:var(--brand);color:#fff;border:1px solid #0b0b0b}
+  .btn-primary:hover{filter:brightness(105%)} .btn-primary:active{background:var(--brand-press)}
+  .btn-full{width:100%;padding:14px 16px;border-radius:14px;font-size:16px}
+  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .toolbar b{font-size:14px;letter-spacing:.2px}
+  .status{text-align:center;margin-top:10px;font-weight:800}
+  footer{margin-top:18px;text-align:center;font-size:12px;color:#6b7280;line-height:1.7}
+  .muted{color:var(--muted)} .hr{height:1px;background:var(--border);margin:12px 0}
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="brandbar">
-      <img src="https://drive.google.com/uc?export=view&id=14OhrEALBrL1MgfeXlsvI8Qwh_HBcZgxR" alt="LOGO">
-      <div class="title">啃酥菱角酥｜出攤申請</div>
-    </div>
-    <h1>分店新地點申請</h1>
+<div class="wrap">
+  <h1>分店出攤申請</h1>
 
-    <div class="card">
-      <form id="applyForm">
-        <label>分店名稱</label>
-        <input name="分店名稱" required placeholder="例：啃酥菱角酥 和美店" />
-
-        <label>負責人</label>
-        <input name="負責人" required placeholder="例：王小明" />
-
-        <div class="row">
-          <div>
-            <label>電話</label>
-            <input name="電話" type="tel" required placeholder="09xx-xxx-xxx" />
-          </div>
-          <div>
-            <label>Email</label>
-            <input name="Email" type="email" required placeholder="you@example.com" />
-          </div>
-        </div>
-
-        <label>申請地點（可新增多筆）</label>
-        <div id="locations"></div>
-        <button id="addLoc" type="button" class="btn-ghost">＋ 新增地點</button>
-
-        <label>整體備註</label>
-        <textarea name="備註" placeholder="例：主辦單位檔期至 12/31，備有 110V 電源"></textarea>
-
-        <button class="btn" type="submit" style="margin-top:10px;width:100%">送出申請</button>
-      </form>
-
-      <div id="submitResult" class="status"></div>
-
-      <hr style="margin:16px 0">
-
-      <div style="text-align:center">
-        <div class="chip">查詢審核狀態</div>
-        <form id="queryForm" style="margin-top:10px">
-          <input id="qid" placeholder="例：KS-XXXXXX" style="padding:8px;width:200px" />
-          <button type="submit" class="btn">查詢</button>
-        </form>
-        <div id="queryResult" class="status"></div>
-        <div class="muted">送出後會寄信通知總部；審核完成會寄正式通知到你填寫的 Email。</div>
+  <!-- 申請表單 -->
+  <div class="card">
+    <div class="sectionTitle">申請資料</div>
+    <div class="hr"></div>
+    <form id="applyForm">
+      <label>分店名稱</label>
+      <input name="分店名稱" required placeholder="例：啃酥菱角酥 和美店">
+      <label>負責人</label>
+      <input name="負責人" required placeholder="例：王小明">
+      <div class="row">
+        <div class="col-6"><label>電話</label><input name="電話" required placeholder="09xx-xxx-xxx"></div>
+        <div class="col-6"><label>Email</label><input name="Email" type="email" required placeholder="you@example.com"></div>
       </div>
-    </div>
 
-    <footer>
-      <div class="legal">
-        酥味香企業社 ｜ 統一編號：93428964<br>
-        地址：台中市石岡區石岡街61號<br>
-        本頁面內容由總部保有修改權利<br>
-        © <span id="year"></span> 啃酥菱角酥 All Rights Reserved.
+      <div class="hr"></div>
+      <div class="toolbar">
+        <b>出攤地點</b>
+        <button type="button" id="addLocBtn" class="btn small">＋ 新增地點</button>
       </div>
-    </footer>
+      <div id="locWrap"></div>
+
+      <div class="hr"></div>
+      <label>申請說明/備註 <span class="muted" style="font-weight:600">(選填)</span></label>
+      <textarea name="申請說明/備註" placeholder="範例：只輸入此次申請說明"></textarea>
+
+      <!-- 滿版主按鈕 -->
+      <button class="btn btn-primary btn-full" type="submit" style="margin-top:14px">送出申請</button>
+    </form>
+    <div id="submitResult" class="status"></div>
   </div>
 
+  <!-- 查詢審核狀態 -->
+  <div class="card">
+    <div class="sectionTitle">查詢審核狀態</div>
+    <div class="hr"></div>
+    <form id="queryForm" class="row" style="margin-bottom:6px">
+      <div class="col-8 col-12"><input id="qid" placeholder="例：KS-123456-1"></div>
+      <div class="col-4 col-12"><button class="btn btn-primary btn-full" type="submit">查詢</button></div>
+    </form>
+    <div id="queryBox" class="status"></div>
+    <div id="queryDetails" style="font-size:13px;color:#555;margin-top:6px"></div>
+  </div>
+
+  <footer>
+    酥味香企業社 ｜ 統一編號：93428964<br>
+    地址：台中市石岡區石岡街61號<br>
+    本頁面內容由總部保有修改權利<br>
+    © <span id="year"></span> 啃酥菱角酥 All Rights Reserved.
+  </footer>
+</div>
+
 <script>
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzuq9WB2XiEbpjkJv2mkhQDH76ixHey4-O6Ot7vCgnkrtmtd7ydnpV9zgMOhAGgF2_JVw/exec";
+/* === 你的 GAS Web App URL（/exec） === */
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyeYDt2He3duzWeyl0abgACHnuH56edmXTjVHpF7SAKm3f15kMqZqcl8PbC9BxApvUEqw/exec";
 
-const locs = document.getElementById("locations");
-const addBtn = document.getElementById("addLoc");
-
-function makeLoc(idx){
+/* === 動態地點 === */
+function addLoc(){
+  const wrap=document.getElementById("locWrap");
   const div=document.createElement("div");
-  div.className="loc";
+  div.className="locCard";
   div.innerHTML=`
-    <div class="hdr"><b>地點 #${idx}</b><button type="button" class="del">刪除</button></div>
-    <label>出攤地點</label>
-    <textarea class="place"></textarea>
-    <div class="row">
-      <div><label>開始日期</label><input type="date" class="start"></div>
-      <div><label>結束日期</label><input type="date" class="end"></div>
+    <div class="toolbar" style="margin-bottom:4px">
+      <b>地點</b>
+      <button type="button" class="btn small delBtn">刪除</button>
     </div>
-    <label><input type="checkbox" class="undecided"> 日期未定</label>
-    <input class="note" placeholder="備註（選填）">
+    <label>活動名稱</label>
+    <input class="eventName" placeholder="例：旱溪夜市 / 市集活動">
+    <label>出攤地址</label>
+    <input class="eventAddr" placeholder="例：台中市東區旱溪東路一段xx號">
+    <div class="row" style="margin-top:2px">
+      <div class="col-6">
+        <label>開始日期</label>
+        <input type="date" class="startDate">
+      </div>
+      <div class="col-6">
+        <label>結束日期</label>
+        <input type="date" class="endDate">
+      </div>
+    </div>
+    <label>備註</label>
+    <input class="eventNote" placeholder="範例：是否申請為臨時固定攤位">
   `;
-  div.querySelector(".del").onclick=()=>{div.remove();refreshIdx()};
-  div.querySelector(".undecided").onchange=(e)=>{
-    div.querySelector(".start").disabled=e.target.checked;
-    div.querySelector(".end").disabled=e.target.checked;
-  }
-  return div;
+  div.querySelector(".delBtn").onclick=()=>div.remove();
+  wrap.appendChild(div);
 }
-function refreshIdx(){
-  [...locs.children].forEach((d,i)=>d.querySelector("b").textContent="地點 #"+(i+1));
-}
-addBtn.onclick=()=>{locs.appendChild(makeLoc(locs.children.length+1));}
-locs.appendChild(makeLoc(1));
+document.getElementById("addLocBtn").onclick=addLoc;
+addLoc(); // 預設一筆
 
-document.getElementById("applyForm").onsubmit=async(e)=>{
+/* === 送出申請：改用 fetch POST === */
+document.getElementById("applyForm").onsubmit=async function(e){
   e.preventDefault();
+  const resEl=document.getElementById("submitResult");
+  resEl.textContent="⏳ 送出中…";
+
   const fd=new FormData(e.target);
   const data=Object.fromEntries(fd.entries());
-  const locList=[...locs.children].map(d=>({
-    出攤地點:d.querySelector(".place").value.trim(),
-    出攤起日:d.querySelector(".start").value,
-    出攤迄日:d.querySelector(".end").value,
-    日期未定:d.querySelector(".undecided").checked,
-    地點備註:d.querySelector(".note").value.trim()
+  const locs=[...document.querySelectorAll("#locWrap .locCard")].map(d=>({
+    活動名稱:d.querySelector(".eventName").value.trim(),
+    出攤地址:d.querySelector(".eventAddr").value.trim(),
+    開始日期:d.querySelector(".startDate").value,
+    結束日期:d.querySelector(".endDate").value,
+    備註:d.querySelector(".eventNote").value.trim()
   }));
-  data.申請地點=locList[0].出攤地點;
-  data.出攤日期=locList[0].日期未定?"未定":(locList[0].出攤起日+"~"+locList[0].出攤迄日);
-  data.地點清單=JSON.stringify(locList);
+  data.地點清單=JSON.stringify(locs);
 
-  const res=await fetch(WEB_APP_URL,{method:"POST",body:JSON.stringify(data)});
-  const json=await res.json();
-  document.getElementById("submitResult").textContent=json.ok?"✅ 已送出 編號:"+json.id:"❌ 失敗:"+json.error;
+  try{
+    const resp=await fetch(WEB_APP_URL,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({ action:"submitApplication", payload:data }),
+      mode:"cors"
+    });
+    const json=await resp.json();
+    if(json && json.ok){
+      resEl.innerHTML=`✅ 已送出，申請編號：<b>${json.id}</b>`;
+      e.target.reset();
+      document.getElementById("locWrap").innerHTML="";
+      addLoc();
+      window.scrollTo({top:0,behavior:"smooth"});
+    }else{
+      resEl.textContent="❌ 送出失敗："+((json && json.error) || "未知錯誤");
+    }
+  }catch(err){
+    resEl.textContent="❌ 連線錯誤："+err;
+  }
 };
 
-document.getElementById("queryForm").onsubmit=async(e)=>{
+/* === 查詢審核狀態：改用 fetch GET === */
+document.getElementById("queryForm").onsubmit=async function(e){
   e.preventDefault();
   const id=document.getElementById("qid").value.trim();
-  const res=await fetch(WEB_APP_URL+"?id="+encodeURIComponent(id));
-  const json=await res.json();
-  document.getElementById("queryResult").textContent=json.ok?("狀態:"+json.狀態):"查無資料";
+  const box=document.getElementById("queryBox");
+  const det=document.getElementById("queryDetails");
+  if(!id){ box.textContent="請輸入申請編號"; det.textContent=""; return; }
+  box.textContent="查詢中…"; det.textContent="";
+
+  try{
+    const url=new URL(WEB_APP_URL);
+    url.searchParams.set("action","queryStatus");
+    url.searchParams.set("id",id);
+
+    const resp=await fetch(url.toString(),{ method:"GET", mode:"cors" });
+    const res=await resp.json();
+
+    if(res && res.ok){
+      let icon='⏳';
+      if(res.狀態==='通過') icon='✅';
+      else if(res.狀態==='不通過') icon='❌';
+      box.innerHTML=`${icon} 審核狀態：<b>${res.狀態}</b>`+(res.審核時間?`　<span style="color:#6b7280">更新時間：${res.審核時間}</span>`:"");
+      det.innerHTML=`
+        活動名稱：${res.活動名稱 || "—"}<br>
+        出攤地址：${res.出攤地址 || "—"}<br>
+        出攤日期：${res.出攤日期 || "—"}<br>
+        地點備註：${res.備註 || "—"}<br>
+        審核備註：${res.審核備註 || "—"}
+      `;
+    }else{
+      box.textContent="❌ 查無資料";
+      det.textContent="";
+    }
+  }catch(err){
+    box.textContent="❌ 連線錯誤："+err;
+    det.textContent="";
+  }
 };
+
 document.getElementById("year").textContent=new Date().getFullYear();
 </script>
 </body>
