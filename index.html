@@ -5,34 +5,53 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>分店新地點出攤申請</title>
 <style>
-  :root{--bg:#f6f7fb;--surface:#fff;--text:#111;--muted:#6b7280;--brand:#111;--border:#e5e7eb}
+  :root{
+    --bg:#f6f7fb;--surface:#fff;--text:#111;--muted:#6b7280;
+    --brand:#111;--border:#e5e7eb;--ok:#16a34a;--bad:#dc2626;
+  }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans TC",Arial,sans-serif}
-  .wrap{max-width:520px;margin:0 auto;padding:20px 14px}
-  h1{font-size:20px;text-align:center;margin:8px 0 16px}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans TC",Arial,sans-serif}
+  .wrap{max-width:560px;margin:0 auto;padding:20px 14px}
+  .brandbar{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:10px}
+  .brandbar img{height:40px}
+  .brandbar .title{font-weight:800;letter-spacing:.1em}
+  h1{font-size:20px;text-align:center;margin:6px 0 16px}
   .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;box-shadow:0 4px 12px rgba(0,0,0,.06);margin-bottom:14px}
-  label{display:block;font-size:14px;font-weight:600;margin:8px 0 6px}
-  input,textarea{width:100%;font-size:16px;padding:12px;border:1px solid var(--border);border-radius:10px}
+  label{display:block;font-size:14px;font-weight:600;margin:10px 0 6px}
+  input,textarea,select{width:100%;font-size:16px;padding:12px;border:1px solid var(--border);border-radius:10px;background:#fff}
   textarea{min-height:84px;resize:vertical}
   .row{display:flex;gap:10px}
   .row>*{flex:1}
-  button{width:100%;background:var(--brand);color:#fff;font-size:16px;padding:14px;border:none;border-radius:10px;cursor:pointer}
-  button:active{opacity:.9}
-  .note{font-size:12px;color:var(--muted);text-align:center;margin-top:8px}
+  .muted{color:var(--muted);font-size:12px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    background:var(--brand);color:#fff;border:none;border-radius:10px;cursor:pointer;padding:12px 14px;font-size:16px}
+  .btn:active{opacity:.9}
+  .btn-ghost{background:#f1f5f9;color:#111;border:1px dashed var(--border)}
   .status{margin-top:14px;text-align:center;font-weight:700}
-  .bad{color:#dc2626}
-  .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#f1f5f9;color:#111;font-size:12px}
-  .brand{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px}
-  .brand img{height:28px}
+  .bad{color:var(--bad)}
+  .ok{color:var(--ok)}
+  .loc{border:1px solid var(--border);border-radius:12px;padding:12px;margin-top:10px;background:#fff}
+  .loc .hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .loc .idx{font-weight:700}
+  .loc .del{background:#fff;border:1px solid var(--border);color:#111;border-radius:999px;font-size:12px;padding:6px 10px;cursor:pointer}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0}
+  .chip{font-size:12px;border-radius:999px;background:#eef2ff;color:#3730a3;padding:4px 8px}
+  footer{margin-top:18px;color:#444}
+  footer .legal{font-size:12px;color:#6b7280;line-height:1.6;text-align:center}
 </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="brand">
-      <img src="https://your.cdn/logo.png" alt="logo">
-      <div class="pill">啃酥菱角酥｜出攤申請</div>
+    <!-- 品牌抬頭（LOGO + 標題） -->
+    <div class="brandbar">
+      <!-- 將 LOGO_URL 改成你的 LOGO 連結 -->
+      <img id="brandLogo" src="https://your.cdn/logo.png" alt="品牌 LOGO">
+      <div class="title">啃酥菱角酥｜出攤申請</div>
     </div>
     <h1>分店新地點申請</h1>
+
+    <!-- 基本資料 -->
     <div class="card">
       <form id="applyForm" autocomplete="on">
         <label>分店名稱</label>
@@ -52,72 +71,216 @@
           </div>
         </div>
 
-        <label>申請地點</label>
-        <textarea name="申請地點" required placeholder="例：苗栗縣竹南鎮○○路夜市 A 區 15 號攤位。請附主辦單位名稱／檔期／電力條件等。"></textarea>
-
-        <div class="row">
-          <div>
-            <label>出攤日期</label>
-            <input name="出攤日期" type="date" required />
-          </div>
+        <!-- 多地點區塊 -->
+        <label style="margin-top:14px">申請地點（可新增多筆）</label>
+        <div id="locations"></div>
+        <div class="chips">
+          <button id="addLocation" class="btn btn-ghost" type="button">＋ 新增一個地點</button>
         </div>
 
-        <label>備註</label>
+        <label>整體備註</label>
         <textarea name="備註" placeholder="例：主辦單位檔期至 12/31，備有 110V 電源"></textarea>
 
-        <button type="submit">送出申請</button>
+        <button class="btn" type="submit" style="width:100%;margin-top:8px">送出申請</button>
       </form>
 
       <div id="submitResult" class="status"></div>
 
       <hr style="margin:16px 0;border:none;border-top:1px solid var(--border)" />
 
+      <!-- 查詢狀態 -->
       <div>
-        <div class="pill">查詢審核狀態</div>
+        <div class="chip">查詢審核狀態</div>
         <label style="margin-top:10px">申請編號</label>
         <form id="queryForm" class="row" onsubmit="return false;">
           <input id="qid" placeholder="例：KS-1A2B3C4D" />
-          <button id="queryBtn">查詢</button>
+          <button id="queryBtn" class="btn">查詢</button>
         </form>
         <div id="queryResult" class="status"></div>
       </div>
 
-      <div class="note">送出後會寄信通知總部；審核完成會寄正式通知到你填寫的 Email。</div>
+      <div class="muted" style="text-align:center;margin-top:10px">
+        送出後會寄信通知總部；審核完成會寄正式通知到你填寫的 Email。
+      </div>
     </div>
+
+    <!-- 正式頁腳（公司資訊 / 修改權利） -->
+    <footer>
+      <div class="legal">
+        <div id="companyName">酥味香企業社</div>
+        <div id="companyId">統一編號：00000000</div>
+        <div>本頁面之內容與樣式由總部擁有最終修改權利；若有異動恕不另行通知。</div>
+        <div>© <span id="year"></span> <span id="brandName">啃酥菱角酥</span> All Rights Reserved.</div>
+      </div>
+    </footer>
   </div>
 
 <script>
-  const WEB_APP_URL = '<<貼上你的 Apps Script Web App URL>>'; // 必改
+  /** ========= 必改變數 ========= */
+  const WEB_APP_URL = '<<貼上你的 Apps Script Web App URL>>'; // 後端端點
+  const LOGO_URL    = 'https://your.cdn/logo.png';            // 你的 LOGO 連結
+  const COMPANY_NAME= '酥味香企業社';                          // 公司行號
+  const COMPANY_ID  = '00000000';                              // 統編
+  const BRAND_NAME  = '啃酥菱角酥';                            // 品牌名（頁腳顯示）
+  /** ========================== */
+
+  // 頁腳與LOGO初始化
+  document.getElementById('brandLogo').src = LOGO_URL;
+  document.getElementById('companyName').textContent = COMPANY_NAME;
+  document.getElementById('companyId').textContent = '統一編號：' + COMPANY_ID;
+  document.getElementById('brandName').textContent = BRAND_NAME;
+  document.getElementById('year').textContent = new Date().getFullYear();
 
   const $ = (s)=>document.querySelector(s);
   const form = $('#applyForm');
   const submitResult = $('#submitResult');
+  const locationsWrap = $('#locations');
+  const addBtn = $('#addLocation');
 
+  // 產生一個地點區塊（含 日期區間 or 未定）
+  function createLocationBlock(index){
+    const div = document.createElement('div');
+    div.className = 'loc';
+    div.innerHTML = `
+      <div class="hdr">
+        <div class="idx">地點 #${index}</div>
+        <button type="button" class="del" aria-label="刪除此地點">刪除</button>
+      </div>
+
+      <label>出攤地點</label>
+      <textarea class="loc-place" placeholder="例：苗栗縣竹南鎮○○路夜市 A 區 15 號攤位"></textarea>
+
+      <div class="row" style="align-items:flex-end">
+        <div>
+          <label>開始日期</label>
+          <input type="date" class="loc-start">
+        </div>
+        <div>
+          <label>結束日期</label>
+          <input type="date" class="loc-end">
+        </div>
+      </div>
+
+      <div class="row" style="align-items:center;margin-top:6px">
+        <div style="flex:0 0 auto">
+          <label style="display:flex;gap:8px;align-items:center;font-weight:500">
+            <input type="checkbox" class="loc-undecided" style="width:auto"> 日期未定
+          </label>
+        </div>
+        <div>
+          <input class="loc-note" placeholder="此地點備註（選填）">
+        </div>
+      </div>
+    `;
+    // 日期未定切換
+    const cb = div.querySelector('.loc-undecided');
+    const start = div.querySelector('.loc-start');
+    const end = div.querySelector('.loc-end');
+    cb.addEventListener('change', ()=>{
+      const dis = cb.checked;
+      start.disabled = end.disabled = dis;
+      if(dis){ start.value = ''; end.value = ''; }
+    });
+    // 刪除
+    div.querySelector('.del').addEventListener('click', ()=>{
+      div.remove();
+      refreshIndices();
+    });
+    return div;
+  }
+
+  // 重新編號
+  function refreshIndices(){
+    [...locationsWrap.querySelectorAll('.loc .idx')].forEach((el, i)=>{
+      el.textContent = `地點 #${i+1}`;
+    });
+  }
+
+  // 取得所有地點資料（含驗證）
+  function collectLocations(){
+    const blocks = [...locationsWrap.querySelectorAll('.loc')];
+    const list = [];
+    for(const b of blocks){
+      const place = b.querySelector('.loc-place').value.trim();
+      const start = b.querySelector('.loc-start').value;
+      const end   = b.querySelector('.loc-end').value;
+      const note  = b.querySelector('.loc-note').value.trim();
+      const undecided = b.querySelector('.loc-undecided').checked;
+
+      if(!place){
+        throw new Error('請填寫每筆地點的「出攤地點」。');
+      }
+      if(!undecided){
+        if(start && end && (new Date(start) > new Date(end))){
+          throw new Error('某筆地點的「結束日期」不可早於「開始日期」。');
+        }
+      }
+
+      list.push({
+        出攤地點: place,
+        日期未定: undecided,
+        出攤起日: undecided ? '' : (start || ''),
+        出攤迄日: undecided ? '' : (end || ''),
+        地點備註: note
+      });
+    }
+    return list;
+  }
+
+  // 預設一筆地點
+  locationsWrap.appendChild(createLocationBlock(1));
+
+  addBtn.addEventListener('click', ()=>{
+    locationsWrap.appendChild(createLocationBlock(locationsWrap.children.length+1));
+  });
+
+  // 送出表單
   form.addEventListener('submit', async (e)=>{
     e.preventDefault();
     submitResult.textContent = '送出中…';
-    const fd = new FormData(form);
-    const data = Object.fromEntries(fd.entries());
 
     try {
+      const fd = new FormData(form);
+      const base = Object.fromEntries(fd.entries());
+      const locs = collectLocations();
+
+      // 為了相容既有 Apps Script 後端（單一欄位），以下策略：
+      // 1) 仍帶「申請地點」= 第一筆地點文字
+      // 2) 仍帶「出攤日期」= 第一筆日期（若有範圍則以「YYYY-MM-DD ~ YYYY-MM-DD」表示；未定為「未定」）
+      // 3) 加帶「地點清單」= JSON.stringify(locs)（建議後端優先寫入此欄）
+      const first = locs[0];
+      const firstDate =
+        first.日期未定 ? '未定'
+        : (first.出攤起日 && first.出攤迄日) ? `${first.出攤起日} ~ ${first.出攤迄日}`
+        : (first.出攤起日 || first.出攤迄日 || '');
+
+      const payload = {
+        ...base,
+        申請地點: first.出攤地點,
+        出攤日期: firstDate,
+        地點清單: JSON.stringify(locs, null, 0) // 後端可直接 JSON.parse 寫入
+      };
+
       const res = await fetch(WEB_APP_URL, {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
-        body: JSON.stringify(data)
+        body: JSON.stringify(payload)
       });
       const json = await res.json();
       if (json.ok) {
         submitResult.innerHTML = `✅ 申請已送出，編號：<b>${json.id}</b>。<br>系統已通知總部，審核完成將寄正式信件給你。`;
         form.reset();
+        locationsWrap.innerHTML = '';
+        locationsWrap.appendChild(createLocationBlock(1));
       } else {
         submitResult.innerHTML = `❌ 送出失敗：<span class="bad">${json.error || 'unknown'}</span>`;
       }
     } catch (err) {
-      submitResult.innerHTML = `❌ 送出失敗：<span class="bad">${String(err)}</span>`;
+      submitResult.innerHTML = `❌ 送出失敗：<span class="bad">${String(err.message||err)}</span>`;
     }
   });
 
-  // 查詢狀態
+  // 查詢審核狀態
   const queryBtn = $('#queryBtn');
   const qidInput = $('#qid');
   const queryResult = $('#queryResult');
@@ -137,8 +300,8 @@
         if (json.狀態 === '通過') icon = '✅';
         else if (json.狀態 === '不通過') icon = '❌';
         queryResult.innerHTML = `${icon} 審核狀態：<b>${json.狀態}</b>` +
-          (json.審核時間 ? `<div class="note">更新時間：${json.審核時間}</div>` : '') +
-          (json.審核備註 ? `<div class="note">審核備註：${json.審核備註}</div>` : '');
+          (json.審核時間 ? `<div class="muted">更新時間：${json.審核時間}</div>` : '') +
+          (json.審核備註 ? `<div class="muted">審核備註：${json.審核備註}</div>` : '');
       } else {
         queryResult.innerHTML = `❌ 查詢失敗：<span class="bad">${json.error}</span>`;
       }
