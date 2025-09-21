@@ -130,8 +130,8 @@ function addLoc(){
 document.getElementById("addLocBtn").onclick=addLoc;
 addLoc(); // 預設一筆
 
-/* === 送出申請：改用 fetch POST === */
-document.getElementById("applyForm").onsubmit=async function(e){
+/* === 送出申請：用 form-urlencoded，避免 CORS 預檢 === */
+document.getElementById("applyForm").onsubmit = async function(e){
   e.preventDefault();
   const resEl=document.getElementById("submitResult");
   resEl.textContent="⏳ 送出中…";
@@ -148,12 +148,16 @@ document.getElementById("applyForm").onsubmit=async function(e){
   data.地點清單=JSON.stringify(locs);
 
   try{
+    const body=new URLSearchParams();
+    body.set("action","submitApplication");
+    body.set("payload", JSON.stringify(data));
+
     const resp=await fetch(WEB_APP_URL,{
       method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({ action:"submitApplication", payload:data }),
+      body,           // 不手動設 Content-Type，瀏覽器會自動用 x-www-form-urlencoded
       mode:"cors"
     });
+
     const json=await resp.json();
     if(json && json.ok){
       resEl.innerHTML=`✅ 已送出，申請編號：<b>${json.id}</b>`;
@@ -169,8 +173,8 @@ document.getElementById("applyForm").onsubmit=async function(e){
   }
 };
 
-/* === 查詢審核狀態：改用 fetch GET === */
-document.getElementById("queryForm").onsubmit=async function(e){
+/* === 查詢審核狀態：用 GET === */
+document.getElementById("queryForm").onsubmit = async function(e){
   e.preventDefault();
   const id=document.getElementById("qid").value.trim();
   const box=document.getElementById("queryBox");
@@ -209,6 +213,11 @@ document.getElementById("queryForm").onsubmit=async function(e){
 };
 
 document.getElementById("year").textContent=new Date().getFullYear();
+
+/* ---- 便利除錯：直接在瀏覽器開 /exec?action=ping 看是否回應 {ok:true} ----
+   你可以在 Apps Script 的 doGet(e) 暫時加入：
+   if (e.parameter.action === 'ping') return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(ContentService.MimeType.JSON);
+-------------------------------------------------------------------------- */
 </script>
 </body>
 </html>
