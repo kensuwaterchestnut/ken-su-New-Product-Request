@@ -1,223 +1,436 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>分店出攤申請</title>
+<meta charset="utf-8" />
+<!-- 手機顯示比例，避免自動放大；照顧 iOS 安全區 -->
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<meta name="format-detection" content="telephone=no">
+<title>新商品申請</title>
 <style>
-  :root{
-    --bg:#f6f7fb;--surface:#fff;--text:#0f172a;--muted:#64748b;--border:#e5e7eb;
-    --brand:#111;--brand-press:#000;--radius:14px;--radius-sm:12px;
+:root{--border:#e5e7eb;--muted:#64748b;--text:#0f172a;--brand:#2563eb;--bad:#dc2626;--bg:#f8fafc;--surface:#fff}
+*{box-sizing:border-box}
+html,body{-webkit-text-size-adjust:100%;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans TC","Helvetica Neue",Arial,sans-serif}
+.wrap{max-width:900px;margin:22px auto;padding:0 12px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 8px 20px rgba(0,0,0,.06);padding:18px}
+h1{margin:0 0 6px;text-align:center;font-size:22px;display:flex;align-items:center;justify-content:center;gap:10px}
+h1 img.logo{height:1.2em; display:inline-block; vertical-align:middle}
+h1 span{color:var(--brand)}
+.hint{margin:0 0 14px;text-align:center;color:var(--muted);font-size:13px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid-full{grid-column:1/-1}
+.label{font-weight:700;font-size:13px;margin-bottom:6px}
+.input,.select,.textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:#fff;font-size:15px;touch-action:manipulation}
+.textarea{min-height:84px;resize:vertical}
+.hr{height:1px;background:var(--border);margin:12px 0}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.btn{cursor:pointer;flex:1;min-width:140px;border-radius:12px;padding:12px 14px;font-weight:700;border:1px solid var(--border);background:#fff}
+.btn-primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+.btn-danger{border-color:#fecaca;color:#b91c1c}
+.small{font-size:12px;color:var(--muted)}
+.error{color:var(--bad)}
+.product{border:1px dashed var(--border);border-radius:12px;padding:12px;margin:8px 0;background:#fff}
+.preview{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.preview .thumb{position:relative}
+.preview img{width:80px;height:80px;border-radius:8px;object-fit:cover;border:1px solid #ddd;display:block}
+.preview .rm{position:absolute;top:-6px;right:-6px;border:none;background:#ef4444;color:#fff;width:20px;height:20px;border-radius:9999px;cursor:pointer;line-height:20px;font-size:12px}
+
+/* 小於 720px 單欄 */
+@media (max-width:720px){.grid{grid-template-columns:1fr}}
+
+/* 900px 以下：手機優化，16px 防止 iOS 放大 */
+@media (max-width: 900px) {
+  html, body { -webkit-text-size-adjust: 100%; }
+  body { font-size: 16px; }
+  .wrap{
+    max-width:none !important; width:100% !important; margin:0 !important;
+    padding-left:max(12px, env(safe-area-inset-left)) !important;
+    padding-right:max(12px, env(safe-area-inset-right)) !important;
+    padding-top:14px !important; padding-bottom:14px !important;
   }
-  *,*::before,*::after{box-sizing:border-box}
-  html,body{height:100%}
-  body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans TC","Helvetica Neue",Arial,sans-serif}
-  .wrap{max-width:720px;margin:0 auto;padding:20px}
-  h1{font-size:22px;font-weight:800;letter-spacing:.5px;margin:4px 0 16px;text-align:center}
-  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 10px 24px rgba(15,23,42,.06);padding:18px;margin-bottom:16px}
-  .locCard{background:#fafafa;border:1px dashed #d1d5db;border-radius:var(--radius-sm);padding:14px;margin:12px 0}
-  .sectionTitle{display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;margin:0 0 8px;color:#111}
-  label{display:block;font-weight:700;margin:10px 0 6px}
-  input,textarea{width:100%;padding:12px;border:1px solid var(--border);border-radius:12px;background:#fff;color:var(--text);outline:0;transition:border-color .15s,box-shadow .15s}
-  input::placeholder,textarea::placeholder{color:#9aa3b2}
-  input:focus,textarea:focus{border-color:#c7d2fe;box-shadow:0 0 0 4px rgba(99,102,241,.15)}
-  textarea{resize:vertical;min-height:90px;line-height:1.6}
-  .row{display:grid;grid-template-columns:repeat(12,1fr);gap:12px;align-items:flex-start}
-  .col-6{grid-column:span 6}.col-8{grid-column:span 8}.col-4{grid-column:span 4}.col-12{grid-column:span 12}
-  @media (max-width:640px){.col-6,.col-8,.col-4{grid-column:span 12}}
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#f3f4f6;color:#111;border:1px solid #e5e7eb;border-radius:12px;padding:10px 14px;cursor:pointer;font-weight:700;transition:filter .15s,transform .02s}
-  .btn:hover{filter:brightness(98%)} .btn:active{transform:translateY(1px)}
-  .btn.small{padding:6px 10px;font-size:13px}
-  .btn-primary{background:var(--brand);color:#fff;border:1px solid #0b0b0b}
-  .btn-primary:hover{filter:brightness(105%)} .btn-primary:active{background:var(--brand-press)}
-  .btn-full{width:100%;padding:14px 16px;border-radius:14px;font-size:16px}
-  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-  .toolbar b{font-size:14px;letter-spacing:.2px}
-  .status{text-align:center;margin-top:10px;font-weight:800}
-  footer{margin-top:18px;text-align:center;font-size:12px;color:#6b7280;line-height:1.7}
-  .muted{color:var(--muted)} .hr{height:1px;background:var(--border);margin:12px 0}
+  .card{
+    padding:16px !important;
+    border-left:none !important; border-right:none !important;
+    box-shadow:none !important;
+    border-radius:12px !important;
+  }
+  .grid{ grid-template-columns:1fr !important; gap:12px !important; }
+  .grid > *{ min-width:0 !important; }
+  .input,.select,.textarea,input,select,textarea{
+    font-size:16px !important; padding:14px 16px !important; width:100% !important;
+  }
+  .actions{ flex-direction:column !important; gap:10px !important; }
+  .btn{ width:100% !important; min-width:0 !important; padding:14px 16px !important; font-size:16px !important; }
+  .preview img,.thumb{ width:72px !important; height:72px !important; }
+}
+
+/* 強制手機單欄（保險） */
+html.force-mobile .wrap{
+  max-width:none !important; width:100% !important; margin:0 !important;
+  padding-left:max(12px, env(safe-area-inset-left)) !important;
+  padding-right:max(12px, env(safe-area-inset-right)) !important;
+  padding-top:14px !important; padding-bottom:14px !important;
+}
+html.force-mobile .card{
+  padding:16px !important; border-left:none !important; border-right:none !important;
+  box-shadow:none !important; border-radius:12px !important;
+}
+html.force-mobile .grid{ grid-template-columns:1fr !important; gap:12px !important; }
+html.force-mobile .grid > *{ min-width:0 !important; }
+html.force-mobile .input, html.force-mobile .select, html.force-mobile .textarea,
+html.force-mobile input, html.force-mobile select, html.force-mobile textarea{
+  font-size:16px !important; padding:14px 16px !important; width:100% !important;
+}
+html.force-mobile .actions{ flex-direction:column !important; gap:10px !important; }
+html.force-mobile .btn{ width:100% !important; min-width:0 !important; padding:14px 16px !important; font-size:16px !important; }
+html.force-mobile .preview img, html.force-mobile .thumb{ width:72px !important; height:72px !important; }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>分店出攤申請</h1>
-
-  <!-- 申請表單 -->
   <div class="card">
-    <div class="sectionTitle">申請資料</div>
+    <h1>
+      <img class="logo" id="logo" alt="KenSu" src="" />
+      <span>啃酥新商品申請</span>
+    </h1>
+    <p class="hint">所有欄位必填</p>
     <div class="hr"></div>
-    <form id="applyForm">
-      <label>分店名稱</label>
-      <input name="分店名稱" required placeholder="例：啃酥菱角酥 和美店">
-      <label>負責人</label>
-      <input name="負責人" required placeholder="例：王小明">
-      <div class="row">
-        <div class="col-6"><label>電話</label><input name="電話" required placeholder="09xx-xxx-xxx"></div>
-        <div class="col-6"><label>Email</label><input name="Email" type="email" required placeholder="you@example.com"></div>
+
+    <form id="f" novalidate>
+      <div class="grid">
+        <div><div class="label">分店/單位 *</div><input class="input" name="store" required placeholder="例如：啃酥xx店"></div>
+        <div><div class="label">申請人 *</div><input class="input" name="applicant" required placeholder="你的姓名"></div>
+        <div><div class="label">Email *</div><input class="input" name="email" type="email" required placeholder="name@example.com"></div>
+        <div><div class="label">電話 *</div><input class="input" name="phone" required placeholder="0900-000-000"></div>
+        <div class="grid-full"><div class="label">備註 *</div><textarea class="textarea" name="remark" required placeholder="其他補充、注意事項…"></textarea></div>
       </div>
 
       <div class="hr"></div>
-      <div class="toolbar">
-        <b>出攤地點</b>
-        <button type="button" id="addLocBtn" class="btn small">＋ 新增地點</button>
+      <div class="label">申請品項 *</div>
+      <div id="products"></div>
+      <div class="actions"><button class="btn" type="button" id="add">＋新增一個品項</button></div>
+
+      <div class="actions">
+        <button class="btn btn-danger" type="button" id="resetBtn">清空</button>
+        <button class="btn btn-primary" type="submit" id="submitBtn">送出申請</button>
       </div>
-      <div id="locWrap"></div>
-
-      <div class="hr"></div>
-      <label>申請說明/備註 <span class="muted" style="font-weight:600">(選填)</span></label>
-      <textarea name="申請說明/備註" placeholder="範例：只輸入此次申請說明"></textarea>
-
-      <!-- 滿版主按鈕 -->
-      <button class="btn btn-primary btn-full" type="submit" style="margin-top:14px">送出申請</button>
+      <div id="msg" class="small" style="margin-top:8px"></div>
     </form>
-    <div id="submitResult" class="status"></div>
-  </div>
 
-  <!-- 查詢審核狀態 -->
-  <div class="card">
-    <div class="sectionTitle">查詢審核狀態</div>
-    <div class="hr"></div>
-    <form id="queryForm" class="row" style="margin-bottom:6px">
-      <div class="col-8 col-12"><input id="qid" placeholder="例：KS-123456-1"></div>
-      <div class="col-4 col-12"><button class="btn btn-primary btn-full" type="submit">查詢</button></div>
-    </form>
-    <div id="queryBox" class="status"></div>
-    <div id="queryDetails" style="font-size:13px;color:#555;margin-top:6px"></div>
+    <div id="done" style="display:none;text-align:center;padding:16px">
+      <h3>✅ 已送出</h3>
+      <p class="small">我們已收到你的申請，請留意審核通知。</p>
+      <div id="applyNo" class="small" style="margin-top:6px;"></div>
+    </div>
   </div>
-
-  <footer>
-    酥味香企業社 ｜ 統一編號：93428964<br>
-    地址：台中市石岡區石岡街61號<br>
-    本頁面內容由總部保有修改權利<br>
-    © <span id="year"></span> 啃酥菱角酥 All Rights Reserved.
-  </footer>
 </div>
 
+<template id="tpl">
+  <div class="product">
+    <div class="grid">
+      <div><div class="label">商品名稱 *</div><input class="input p-name" required></div>
+      <div><div class="label">規格/包裝 *</div><input class="input p-spec" required></div>
+      <div><div class="label">建議售價 *</div><input class="input p-price" required></div>
+      <div><div class="label">成本 *</div><input class="input p-cost" required></div>
+      <div>
+        <div class="label">素別 *</div>
+        <select class="select p-veg" required>
+          <option value="">請選擇</option><option>葷食</option><option>蛋奶素</option><option>奶素</option><option>蛋素</option><option>全素</option>
+        </select>
+      </div>
+      <div><div class="label">過敏原 *</div><input class="input p-allg" required placeholder="蛋, 奶, 花生…"></div>
+      <div class="grid-full"><div class="label">成分/原料 *</div><textarea class="textarea p-ings" required placeholder="主要原料…"></textarea></div>
+      <div><div class="label">保存期限 *</div><input class="input p-life" required placeholder="常溫/冷藏/冷凍 + 月數"></div>
+      <div><div class="label">保存方式 *</div><input class="input p-store" required placeholder="常溫/冷藏/冷凍"></div>
+      <div>
+        <div class="label">供應型態 *</div>
+        <select class="select p-supply" required>
+          <option>常態供應</option><option>季節限定</option><option>試賣</option>
+        </select>
+      </div>
+      <div><div class="label">預計上架日 *</div><input class="input p-launch" type="date" required></div>
+
+      <div class="grid-full">
+        <div class="label">商品圖片（拍照或選擇相簿上傳）</div>
+        <input class="input p-img" type="file" accept="image/*" capture="environment" multiple>
+        <div class="preview"></div>
+      </div>
+    </div>
+    <div class="actions"><button class="btn btn-danger" type="button" onclick="removeProduct(this)">刪除此品項</button></div>
+  </div>
+</template>
+
 <script>
-/* === 你的 GAS Web App URL（/exec） === */
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyOZfbQZbzHQr5aKfX66IMXczuZzRBF4VzbZAGefMqrYsuNRGMHqmAMqaYYkgDGE3YCrQ/exec";
+/* ========= 你需要修改的地方 ========= */
+// 把這裡換成你的 Apps Script Web App（或其他 API/Make webhook）URL
+const ENDPOINT = 'https://script.google.com/macros/s/XXXXX/exec';
 
-/* === 動態地點 === */
-function addLoc(){
-  const wrap=document.getElementById("locWrap");
-  const div=document.createElement("div");
-  div.className="locCard";
-  div.innerHTML=`
-    <div class="toolbar" style="margin-bottom:4px">
-      <b>地點</b>
-      <button type="button" class="btn small delBtn">刪除</button>
-    </div>
-    <label>活動名稱</label>
-    <input class="eventName" placeholder="例：旱溪夜市 / 市集活動">
-    <label>出攤地址</label>
-    <input class="eventAddr" placeholder="例：台中市東區旱溪東路一段xx號">
-    <div class="row" style="margin-top:2px">
-      <div class="col-6">
-        <label>開始日期</label>
-        <input type="date" class="startDate">
-      </div>
-      <div class="col-6">
-        <label>結束日期</label>
-        <input type="date" class="endDate">
-      </div>
-    </div>
-    <label>備註</label>
-    <input class="eventNote" placeholder="範例：是否申請為臨時固定攤位">
-  `;
-  div.querySelector(".delBtn").onclick=()=>div.remove();
-  wrap.appendChild(div);
-}
-document.getElementById("addLocBtn").onclick=addLoc;
-addLoc(); // 預設一筆
+// A. 用公開圖檔 URL（建議，把圖放 GitHub 或雲端設公開讀取）
+const LOGO_URL = 'https://raw.githubusercontent.com/your-org/your-repo/main/logo.png';
+// B. 可選：用 Drive 檔案 ID，前端會呼叫 ENDPOINT?fn=logo&fileId=... 取得 dataURL（需後端支援）
+const LOGO_FILE_ID = ''; // 例如 '14OhrEALBrL1MgfeXlsvI8Qwh_HBcZgxR'
 
-/* === 送出申請：用 form-urlencoded，避免 CORS 預檢 === */
-document.getElementById("applyForm").onsubmit = async function(e){
-  e.preventDefault();
-  const resEl=document.getElementById("submitResult");
-  resEl.textContent="⏳ 送出中…";
+/* ===== 常數（本地快取） ===== */
+const AUTOSAVE_KEY = 'kensu-new-product-form.v1';
 
-  const fd=new FormData(e.target);
-  const data=Object.fromEntries(fd.entries());
-  const locs=[...document.querySelectorAll("#locWrap .locCard")].map(d=>({
-    活動名稱:d.querySelector(".eventName").value.trim(),
-    出攤地址:d.querySelector(".eventAddr").value.trim(),
-    開始日期:d.querySelector(".startDate").value,
-    結束日期:d.querySelector(".endDate").value,
-    備註:d.querySelector(".eventNote").value.trim()
-  }));
-  data.地點清單=JSON.stringify(locs);
+/* ===== DOM ===== */
+const f = document.getElementById('f');
+const addBtn = document.getElementById('add');
+const productsBox = document.getElementById('products');
+const tpl = document.getElementById('tpl');
+const msg = document.getElementById('msg');
+const submitBtn = document.getElementById('submitBtn');
+const done = document.getElementById('done');
+const applyNoEl = document.getElementById('applyNo');
 
+/* ===== (新增) 偵測實體手機，強制進入手機樣式 ===== */
+(function forceMobileIfSmallDevice(){
   try{
-    const body=new URLSearchParams();
-    body.set("action","submitApplication");
-    body.set("payload", JSON.stringify(data));
+    const sw = Math.min(window.screen.width || 0, window.screen.height || 0);
+    const coarse = window.matchMedia && window.matchMedia('(hover:none) and (pointer:coarse)').matches;
+    if ((sw && sw <= 480) || coarse) document.documentElement.classList.add('force-mobile');
+  }catch(_){}
+})();
 
-    const resp=await fetch(WEB_APP_URL,{
-      method:"POST",
-      body,           // 不手動設 Content-Type，瀏覽器會自動用 x-www-form-urlencoded
-      mode:"cors"
+/* ===== 圖片預覽與刪除 ===== */
+function bindImagePreview(container) {
+  const input = container.querySelector('.p-img');
+  const preview = container.querySelector('.preview');
+  input.addEventListener('change', () => {
+    preview.innerHTML = '';
+    const files = Array.from(input.files);
+    files.forEach((file, idx) => {
+      const fr = new FileReader();
+      fr.onload = e => {
+        const wrap = document.createElement('div');
+        wrap.className = 'thumb';
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        const rm = document.createElement('button');
+        rm.className = 'rm'; rm.type = 'button'; rm.textContent = '×';
+        rm.onclick = () => {
+          const list = Array.from(input.files);
+          list.splice(idx, 1);
+          const dt = new DataTransfer();
+          list.forEach(f => dt.items.add(f));
+          input.files = dt.files;
+          wrap.remove();
+        };
+        wrap.appendChild(img); wrap.appendChild(rm);
+        preview.appendChild(wrap);
+      };
+      fr.readAsDataURL(file);
     });
+  });
+}
 
-    const json=await resp.json();
-    if(json && json.ok){
-      resEl.innerHTML=`✅ 已送出，申請編號：<b>${json.id}</b>`;
-      e.target.reset();
-      document.getElementById("locWrap").innerHTML="";
-      addLoc();
-      window.scrollTo({top:0,behavior:"smooth"});
-    }else{
-      resEl.textContent="❌ 送出失敗："+((json && json.error) || "未知錯誤");
-    }
-  }catch(err){
-    resEl.textContent="❌ 連線錯誤："+err;
+/* ===== 新增/刪除品項 ===== */
+function addProduct(prefill){
+  const node = tpl.content.cloneNode(true);
+  productsBox.appendChild(node);
+  const card = productsBox.lastElementChild;
+  bindImagePreview(card);
+  if (prefill) {
+    card.querySelector('.p-name').value   = prefill.product_name || '';
+    card.querySelector('.p-spec').value   = prefill.spec || '';
+    card.querySelector('.p-price').value  = prefill.price_suggest || '';
+    card.querySelector('.p-cost').value   = prefill.cost || '';
+    card.querySelector('.p-veg').value    = prefill.vegetarian || '';
+    card.querySelector('.p-allg').value   = prefill.allergens || '';
+    card.querySelector('.p-ings').value   = prefill.ingredients || '';
+    card.querySelector('.p-life').value   = prefill.shelf_life || '';
+    card.querySelector('.p-store').value  = prefill.storage || '';
+    card.querySelector('.p-supply').value = prefill.supply_type || '常態供應';
+    card.querySelector('.p-launch').value = prefill.launch_date || '';
   }
-};
+}
+function removeProduct(btn){
+  const card=btn.closest('.product');
+  if(productsBox.querySelectorAll('.product').length<=1){ alert('至少需要一個品項'); return; }
+  card.remove();
+  saveForm();
+}
+window.removeProduct = removeProduct;
 
-/* === 查詢審核狀態：用 GET === */
-document.getElementById("queryForm").onsubmit = async function(e){
-  e.preventDefault();
-  const id=document.getElementById("qid").value.trim();
-  const box=document.getElementById("queryBox");
-  const det=document.getElementById("queryDetails");
-  if(!id){ box.textContent="請輸入申請編號"; det.textContent=""; return; }
-  box.textContent="查詢中…"; det.textContent="";
+/* ===== 驗證 ===== */
+function validate(){
+  const need=[f.store,f.applicant,f.email,f.phone,f.remark];
+  for(const el of need){ if(!el.value.trim()) return '請完整填寫共同欄位'; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.value.trim())) return 'Email 格式不正確';
+  const cards=productsBox.querySelectorAll('.product');
+  if(!cards.length) return '請至少新增一個品項';
+  for(const card of cards){
+    const req=['.p-name','.p-spec','.p-price','.p-cost','.p-veg','.p-allg','.p-ings','.p-life','.p-store','.p-supply','.p-launch'];
+    for(const sel of req){
+      const el=card.querySelector(sel);
+      if(!el || !String(el.value||'').trim()) return '每個品項所有欄位皆為必填';
+    }
+  }
+  return '';
+}
 
+/* ===== File -> base64 ===== */
+function fileToData(file){
+  return new Promise((resolve,reject)=>{
+    const fr = new FileReader();
+    fr.onload = e => {
+      const dataUrl = e.target.result;
+      const comma = dataUrl.indexOf(',');
+      resolve({
+        name: file.name || 'upload',
+        type: file.type || 'application/octet-stream',
+        data: dataUrl.slice(comma+1)
+      });
+    };
+    fr.onerror = reject;
+    fr.readAsDataURL(file);
+  });
+}
+
+/* ===== 收集 ===== */
+async function gatherForm(){
+  const products=[];
+  for(const card of productsBox.querySelectorAll('.product')){
+    const get=sel=>card.querySelector(sel).value.trim();
+    const input = card.querySelector('.p-img');
+    const files = Array.from(input.files);
+    const photos = await Promise.all(files.map(fileToData));
+    products.push({
+      product_name:get('.p-name'),
+      spec:get('.p-spec'),
+      price_suggest:get('.p-price'),
+      cost:get('.p-cost'),
+      vegetarian:card.querySelector('.p-veg').value,
+      allergens:get('.p-allg'),
+      ingredients:get('.p-ings'),
+      shelf_life:get('.p-life'),
+      storage:get('.p-store'),
+      supply_type:card.querySelector('.p-supply').value,
+      launch_date:card.querySelector('.p-launch').value,
+      photos
+    });
+  }
+  return {
+    store: f.store.value.trim(),
+    applicant: f.applicant.value.trim(),
+    email: f.email.value.trim(),
+    phone: f.phone.value.trim(),
+    remark: f.remark.value.trim(),
+    products
+  };
+}
+
+/* ===== 自動儲存（localStorage） ===== */
+const AUTOSAVE_FIELDS_SELECTOR = 'input, textarea, select';
+function saveForm(){
   try{
-    const url=new URL(WEB_APP_URL);
-    url.searchParams.set("action","queryStatus");
-    url.searchParams.set("id",id);
-
-    const resp=await fetch(url.toString(),{ method:"GET", mode:"cors" });
-    const res=await resp.json();
-
-    if(res && res.ok){
-      let icon='⏳';
-      if(res.狀態==='通過') icon='✅';
-      else if(res.狀態==='不通過') icon='❌';
-      box.innerHTML=`${icon} 審核狀態：<b>${res.狀態}</b>`+(res.審核時間?`　<span style="color:#6b7280">更新時間：${res.審核時間}</span>`:"");
-      det.innerHTML=`
-        活動名稱：${res.活動名稱 || "—"}<br>
-        出攤地址：${res.出攤地址 || "—"}<br>
-        出攤日期：${res.出攤日期 || "—"}<br>
-        地點備註：${res.備註 || "—"}<br>
-        審核備註：${res.審核備註 || "—"}
-      `;
-    }else{
-      box.textContent="❌ 查無資料";
-      det.textContent="";
-    }
-  }catch(err){
-    box.textContent="❌ 連線錯誤："+err;
-    det.textContent="";
+    const data = {
+      store: f.store.value || '',
+      applicant: f.applicant.value || '',
+      email: f.email.value || '',
+      phone: f.phone.value || '',
+      remark: f.remark.value || '',
+      products: Array.from(productsBox.querySelectorAll('.product')).map(card=>({
+        product_name: card.querySelector('.p-name').value || '',
+        spec:         card.querySelector('.p-spec').value || '',
+        price_suggest:card.querySelector('.p-price').value || '',
+        cost:         card.querySelector('.p-cost').value || '',
+        vegetarian:   card.querySelector('.p-veg').value || '',
+        allergens:    card.querySelector('.p-allg').value || '',
+        ingredients:  card.querySelector('.p-ings').value || '',
+        shelf_life:   card.querySelector('.p-life').value || '',
+        storage:      card.querySelector('.p-store').value || '',
+        supply_type:  card.querySelector('.p-supply').value || '常態供應',
+        launch_date:  card.querySelector('.p-launch').value || ''
+      }))
+    };
+    localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(data));
+  }catch(e){}
+}
+function loadForm(){
+  try{
+    const raw = localStorage.getItem(AUTOSAVE_KEY);
+    if (!raw) { productsBox.innerHTML=''; addProduct(); return; }
+    const data = JSON.parse(raw);
+    f.store.value = data.store || '';
+    f.applicant.value = data.applicant || '';
+    f.email.value = data.email || '';
+    f.phone.value = data.phone || '';
+    f.remark.value = data.remark || '';
+    productsBox.innerHTML = '';
+    const list = Array.isArray(data.products) && data.products.length ? data.products : [{}];
+    list.forEach(p => addProduct(p));
+  }catch(_){
+    productsBox.innerHTML = '';
+    addProduct();
   }
-};
+}
+function clearSaved(){ localStorage.removeItem(AUTOSAVE_KEY); }
 
-document.getElementById("year").textContent=new Date().getFullYear();
+/* ===== 綁定 & 送出 ===== */
+async function initBindings(){
+  // 設定 LOGO
+  const logoEl = document.getElementById('logo');
+  if (LOGO_FILE_ID) {
+    try{
+      const r = await fetch(`${ENDPOINT}?fn=logo&fileId=${encodeURIComponent(LOGO_FILE_ID)}`, { method:'GET', mode:'cors' });
+      const j = await r.json();
+      if (j && j.ok && j.dataUrl) logoEl.src = j.dataUrl; else logoEl.src = LOGO_URL || '';
+    }catch(_){ logoEl.src = LOGO_URL || ''; }
+  } else {
+    logoEl.src = LOGO_URL || '';
+  }
 
-/* ---- 便利除錯：直接在瀏覽器開 /exec?action=ping 看是否回應 {ok:true} ----
-   你可以在 Apps Script 的 doGet(e) 暫時加入：
-   if (e.parameter.action === 'ping') return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(ContentService.MimeType.JSON);
--------------------------------------------------------------------------- */
+  addBtn.addEventListener('click', ()=>{ addProduct(); saveForm(); });
+  document.getElementById('resetBtn').addEventListener('click', ()=>{
+    f.reset(); productsBox.innerHTML=''; addProduct(); msg.textContent='';
+    clearSaved();
+  });
+
+  ['input','change'].forEach(evt=>{
+    f.addEventListener(evt, (e)=>{ if (e.target.matches(AUTOSAVE_FIELDS_SELECTOR)) saveForm(); });
+  });
+  productsBox.addEventListener('input', (e)=>{ if (e.target.matches(AUTOSAVE_FIELDS_SELECTOR)) saveForm(); });
+  productsBox.addEventListener('change', (e)=>{ if (e.target.matches(AUTOSAVE_FIELDS_SELECTOR)) saveForm(); });
+
+  loadForm();
+
+  // 送出
+  f.addEventListener('submit', async e=>{
+    e.preventDefault();
+    msg.textContent='';
+    const err=validate();
+    if(err){ msg.textContent='⚠️ '+err; return; }
+
+    try{
+      submitBtn.disabled=true;
+      submitBtn.textContent='送出中…';
+      const payload = await gatherForm();
+
+      const res = await fetch(ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        mode: 'cors',
+        body: JSON.stringify({ fn:'processForm', data: payload })
+      });
+      const j = await res.json();
+
+      if (!j || !j.ok) throw new Error((j && j.message) || '後端未回傳成功狀態');
+
+      clearSaved();
+      f.style.display='none';
+      done.style.display='block';
+      applyNoEl.textContent = '申請編號：' + (j.applyNo || '');
+      submitBtn.disabled=false;
+      submitBtn.textContent='送出申請';
+    }catch(ex){
+      msg.innerHTML = `<span class="error">❌ 送出失敗：</span>${(ex && ex.message) || ex}`;
+      submitBtn.disabled=false;
+      submitBtn.textContent='送出申請';
+    }
+  });
+}
+document.addEventListener('DOMContentLoaded', initBindings);
 </script>
 </body>
 </html>
