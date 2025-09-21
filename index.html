@@ -29,7 +29,7 @@
   .btn:active{opacity:.9}
   .btn-ghost{background:#f1f5f9;color:#111;border:1px dashed var(--border)}
   .status{margin-top:14px;text-align:center;font-weight:700}
-  .bad{color:var(--bad)}
+  .bad{color:#dc2626}
   .ok{color:var(--ok)}
   .loc{border:1px solid var(--border);border-radius:12px;padding:12px;margin-top:10px;background:#fff}
   .loc .hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
@@ -37,6 +37,7 @@
   .loc .del{background:#fff;border:1px solid var(--border);color:#111;border-radius:999px;font-size:12px;padding:6px 10px;cursor:pointer}
   .chips{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0}
   .chip{font-size:12px;border-radius:999px;background:#eef2ff;color:#3730a3;padding:4px 8px}
+  .centered{ text-align:center; }
   footer{margin-top:18px;color:#444}
   footer .legal{font-size:12px;color:#6b7280;line-height:1.6;text-align:center}
 </style>
@@ -45,7 +46,7 @@
   <div class="wrap">
     <!-- 品牌抬頭（LOGO + 標題） -->
     <div class="brandbar">
-      <!-- 將 LOGO_URL 改成你的 LOGO 連結 -->
+      <!-- LOGO_URL：改成你的 LOGO 連結 -->
       <img id="brandLogo" src="https://your.cdn/logo.png" alt="品牌 LOGO">
       <div class="title">啃酥菱角酥｜出攤申請</div>
     </div>
@@ -55,19 +56,19 @@
     <div class="card">
       <form id="applyForm" autocomplete="on">
         <label>分店名稱</label>
-        <input name="分店名稱" required placeholder="例：啃酥菱角酥 竹南站前店" />
+        <input name="分店名稱" required placeholder="例：啃酥菱角酥 和美店" data-persist />
 
         <label>負責人</label>
-        <input name="負責人" required placeholder="例：王小明" />
+        <input name="負責人" required placeholder="例：王小明" data-persist />
 
         <div class="row">
           <div>
             <label>電話</label>
-            <input name="電話" type="tel" inputmode="tel" required placeholder="09xx-xxx-xxx" />
+            <input name="電話" type="tel" inputmode="tel" required placeholder="09xx-xxx-xxx" data-persist />
           </div>
           <div>
             <label>Email</label>
-            <input name="Email" type="email" required placeholder="you@example.com" />
+            <input name="Email" type="email" required placeholder="you@example.com" data-persist />
           </div>
         </div>
 
@@ -79,7 +80,7 @@
         </div>
 
         <label>整體備註</label>
-        <textarea name="備註" placeholder="例：主辦單位檔期至 12/31，備有 110V 電源"></textarea>
+        <textarea name="備註" placeholder="例：主辦單位檔期至 12/31，備有 110V 電源" data-persist></textarea>
 
         <button class="btn" type="submit" style="width:100%;margin-top:8px">送出申請</button>
       </form>
@@ -88,19 +89,16 @@
 
       <hr style="margin:16px 0;border:none;border-top:1px solid var(--border)" />
 
-      <!-- 查詢狀態 -->
-      <div>
+      <!-- 查詢狀態（置中） -->
+      <div class="centered">
         <div class="chip">查詢審核狀態</div>
-        <label style="margin-top:10px">申請編號</label>
-        <form id="queryForm" class="row" onsubmit="return false;">
-          <input id="qid" placeholder="例：KS-1A2B3C4D" />
-          <button id="queryBtn" class="btn">查詢</button>
+        <label style="display:block;margin-top:10px">申請編號</label>
+        <form id="queryForm" class="row" onsubmit="return false;" style="justify-content:center">
+          <input id="qid" placeholder="例：KS-1A2B3C4D" style="max-width:260px" />
+          <button id="queryBtn" class="btn" style="flex:0 0 auto">查詢</button>
         </form>
         <div id="queryResult" class="status"></div>
-      </div>
-
-      <div class="muted" style="text-align:center;margin-top:10px">
-        送出後會寄信通知總部；審核完成會寄正式通知到你填寫的 Email。
+        <div class="muted" style="margin-top:6px">送出後會寄信通知總部；審核完成會寄正式通知到你填寫的 Email。</div>
       </div>
     </div>
 
@@ -108,7 +106,8 @@
     <footer>
       <div class="legal">
         <div id="companyName">酥味香企業社</div>
-        <div id="companyId">統一編號：00000000</div>
+        <div id="companyId">統一編號：93428964</div>
+        <div id="companyAddr">地址：台中市石岡區石岡街61號</div>
         <div>本頁面之內容與樣式由總部擁有最終修改權利；若有異動恕不另行通知。</div>
         <div>© <span id="year"></span> <span id="brandName">啃酥菱角酥</span> All Rights Reserved.</div>
       </div>
@@ -120,14 +119,16 @@
   const WEB_APP_URL = '<<貼上你的 Apps Script Web App URL>>'; // 後端端點
   const LOGO_URL    = 'https://your.cdn/logo.png';            // 你的 LOGO 連結
   const COMPANY_NAME= '酥味香企業社';                          // 公司行號
-  const COMPANY_ID  = '00000000';                              // 統編
+  const COMPANY_ID  = '93428964';                              // 統一編號
+  const COMPANY_ADDR= '台中市石岡區石岡街61號';                 // 地址
   const BRAND_NAME  = '啃酥菱角酥';                            // 品牌名（頁腳顯示）
   /** ========================== */
 
-  // 頁腳與LOGO初始化
+  // ====== 初始化品牌資訊 ======
   document.getElementById('brandLogo').src = LOGO_URL;
   document.getElementById('companyName').textContent = COMPANY_NAME;
   document.getElementById('companyId').textContent = '統一編號：' + COMPANY_ID;
+  document.getElementById('companyAddr').textContent = '地址：' + COMPANY_ADDR;
   document.getElementById('brandName').textContent = BRAND_NAME;
   document.getElementById('year').textContent = new Date().getFullYear();
 
@@ -137,8 +138,12 @@
   const locationsWrap = $('#locations');
   const addBtn = $('#addLocation');
 
+  // ====== LocalStorage 記憶（含多地點） ======
+  const LS_KEY_BASE = 'kensu.apply.base';
+  const LS_KEY_LOCS = 'kensu.apply.locations';
+
   // 產生一個地點區塊（含 日期區間 or 未定）
-  function createLocationBlock(index){
+  function createLocationBlock(index, data){
     const div = document.createElement('div');
     div.className = 'loc';
     div.innerHTML = `
@@ -172,20 +177,44 @@
         </div>
       </div>
     `;
-    // 日期未定切換
-    const cb = div.querySelector('.loc-undecided');
+
+    const place = div.querySelector('.loc-place');
     const start = div.querySelector('.loc-start');
-    const end = div.querySelector('.loc-end');
+    const end   = div.querySelector('.loc-end');
+    const note  = div.querySelector('.loc-note');
+    const cb    = div.querySelector('.loc-undecided');
+
+    // 還原資料
+    if (data){
+      place.value = data.出攤地點 || '';
+      start.value = data.出攤起日 || '';
+      end.value   = data.出攤迄日 || '';
+      note.value  = data.地點備註 || '';
+      cb.checked  = !!data.日期未定;
+      if (cb.checked){ start.disabled = end.disabled = true; }
+    }
+
+    // 事件：日期未定切換
     cb.addEventListener('change', ()=>{
       const dis = cb.checked;
       start.disabled = end.disabled = dis;
       if(dis){ start.value = ''; end.value = ''; }
+      saveLocationsToLS();
     });
+
+    // 事件：欄位變更即存
+    [place,start,end,note].forEach(el => {
+      el.addEventListener('input', debounce(saveLocationsToLS, 300));
+      el.addEventListener('change', saveLocationsToLS);
+    });
+
     // 刪除
     div.querySelector('.del').addEventListener('click', ()=>{
       div.remove();
       refreshIndices();
+      saveLocationsToLS();
     });
+
     return div;
   }
 
@@ -196,9 +225,10 @@
     });
   }
 
-  // 取得所有地點資料（含驗證）
+  // 收集所有地點
   function collectLocations(){
     const blocks = [...locationsWrap.querySelectorAll('.loc')];
+    if (blocks.length === 0) throw new Error('請至少新增一個地點');
     const list = [];
     for(const b of blocks){
       const place = b.querySelector('.loc-place').value.trim();
@@ -227,27 +257,89 @@
     return list;
   }
 
-  // 預設一筆地點
-  locationsWrap.appendChild(createLocationBlock(1));
+  // LocalStorage：儲存/載入 base 欄位
+  function saveBaseToLS(){
+    const fields = [...form.querySelectorAll('[data-persist]')];
+    const obj = {};
+    fields.forEach(el => { obj[el.name] = el.value; });
+    localStorage.setItem(LS_KEY_BASE, JSON.stringify(obj));
+  }
+  function loadBaseFromLS(){
+    try{
+      const raw = localStorage.getItem(LS_KEY_BASE);
+      if(!raw) return;
+      const obj = JSON.parse(raw);
+      Object.entries(obj).forEach(([k,v])=>{
+        const el = form.querySelector(`[name="${CSS.escape(k)}"]`);
+        if(el) el.value = v;
+      });
+    }catch{}
+  }
 
-  addBtn.addEventListener('click', ()=>{
-    locationsWrap.appendChild(createLocationBlock(locationsWrap.children.length+1));
+  // LocalStorage：儲存/載入 locations
+  function saveLocationsToLS(){
+    try{
+      const list = collectLocations();
+      localStorage.setItem(LS_KEY_LOCS, JSON.stringify(list));
+    }catch{
+      // 若暫時未填完整就先不存
+    }
+  }
+  function loadLocationsFromLS(){
+    const raw = localStorage.getItem(LS_KEY_LOCS);
+    if(!raw){
+      locationsWrap.appendChild(createLocationBlock(1));
+      return;
+    }
+    try{
+      const list = JSON.parse(raw);
+      if(Array.isArray(list) && list.length){
+        locationsWrap.innerHTML = '';
+        list.forEach((item, i)=>{
+          locationsWrap.appendChild(createLocationBlock(i+1, item));
+        });
+      }else{
+        locationsWrap.appendChild(createLocationBlock(1));
+      }
+    }catch{
+      locationsWrap.appendChild(createLocationBlock(1));
+    }
+  }
+
+  // debounce 小工具
+  function debounce(fn, ms){
+    let t; return (...args)=>{ clearTimeout(t); t = setTimeout(()=>fn.apply(this,args), ms); };
+  }
+
+  // 綁定 base 欄位即時儲存
+  [...form.querySelectorAll('[data-persist]')].forEach(el=>{
+    el.addEventListener('input', debounce(saveBaseToLS, 300));
+    el.addEventListener('change', saveBaseToLS);
   });
 
-  // 送出表單
+  // 頁面載入時還原
+  loadBaseFromLS();
+  loadLocationsFromLS();
+
+  // 新增地點
+  addBtn.addEventListener('click', ()=>{
+    locationsWrap.appendChild(createLocationBlock(locationsWrap.children.length+1));
+    saveLocationsToLS();
+  });
+
+  // ====== 送出表單 ======
   form.addEventListener('submit', async (e)=>{
     e.preventDefault();
     submitResult.textContent = '送出中…';
 
     try {
-      const fd = new FormData(form);
-      const base = Object.fromEntries(fd.entries());
+      const base = {};
+      [...form.querySelectorAll('[data-persist]')].forEach(el=>{
+        base[el.name] = el.value;
+      });
       const locs = collectLocations();
 
-      // 為了相容既有 Apps Script 後端（單一欄位），以下策略：
-      // 1) 仍帶「申請地點」= 第一筆地點文字
-      // 2) 仍帶「出攤日期」= 第一筆日期（若有範圍則以「YYYY-MM-DD ~ YYYY-MM-DD」表示；未定為「未定」）
-      // 3) 加帶「地點清單」= JSON.stringify(locs)（建議後端優先寫入此欄）
+      // 舊後端相容欄位（取第一筆做摘要）
       const first = locs[0];
       const firstDate =
         first.日期未定 ? '未定'
@@ -258,7 +350,7 @@
         ...base,
         申請地點: first.出攤地點,
         出攤日期: firstDate,
-        地點清單: JSON.stringify(locs, null, 0) // 後端可直接 JSON.parse 寫入
+        地點清單: JSON.stringify(locs, null, 0)
       };
 
       const res = await fetch(WEB_APP_URL, {
@@ -269,6 +361,7 @@
       const json = await res.json();
       if (json.ok) {
         submitResult.innerHTML = `✅ 申請已送出，編號：<b>${json.id}</b>。<br>系統已通知總部，審核完成將寄正式信件給你。`;
+        // 表單清空，但保留 LocalStorage 記憶
         form.reset();
         locationsWrap.innerHTML = '';
         locationsWrap.appendChild(createLocationBlock(1));
@@ -280,10 +373,10 @@
     }
   });
 
-  // 查詢審核狀態
-  const queryBtn = $('#queryBtn');
-  const qidInput = $('#qid');
-  const queryResult = $('#queryResult');
+  // ====== 查詢審核狀態 ======
+  const queryBtn = document.getElementById('queryBtn');
+  const qidInput = document.getElementById('qid');
+  const queryResult = document.getElementById('queryResult');
 
   queryBtn.addEventListener('click', async ()=>{
     const qid = (qidInput.value || '').trim();
