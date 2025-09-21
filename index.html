@@ -1,404 +1,151 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>新商品申請</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>分店新地點出攤申請</title>
 <style>
-:root{--border:#e5e7eb;--muted:#64748b;--text:#0f172a;--brand:#2563eb;--bad:#dc2626;--bg:#f8fafc;--surface:#fff}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans TC","Helvetica Neue",Arial,sans-serif}
-.wrap{max-width:900px;margin:22px auto;padding:0 12px}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 8px 20px rgba(0,0,0,.06);padding:18px}
-h1{margin:0 0 6px;text-align:center;font-size:22px}
-h1 span{color:var(--brand)}
-.hint{margin:0 0 14px;text-align:center;color:var(--muted);font-size:13px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.grid-full{grid-column:1/-1}
-.label{font-weight:700;font-size:13px;margin-bottom:6px}
-.input,.select,.textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:#fff;font-size:15px}
-.textarea{min-height:84px;resize:vertical}
-.hr{height:1px;background:var(--border);margin:12px 0}
-.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
-.btn{cursor:pointer;flex:1;min-width:140px;border-radius:12px;padding:12px 14px;font-weight:700;border:1px solid var(--border);background:#fff}
-.btn-primary{background:var(--brand);color:#fff;border-color:var(--brand)}
-.btn-danger{border-color:#fecaca;color:#b91c1c}
-.small{font-size:12px;color:var(--muted)}
-.error{color:var(--bad)}
-.product{border:1px dashed var(--border);border-radius:12px;padding:12px;margin:8px 0;background:#fff}
-.preview{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
-.preview .thumb{position:relative}
-.preview img{width:80px;height:80px;border-radius:8px;object-fit:cover;border:1px solid #ddd;display:block}
-.preview .rm{position:absolute;top:-6px;right:-6px;border:none;background:#ef4444;color:#fff;width:20px;height:20px;border-radius:9999px;cursor:pointer;line-height:20px;font-size:12px}
-@media (max-width:720px){.grid{grid-template-columns:1fr}}
+  :root{--bg:#f6f7fb;--surface:#fff;--text:#111;--muted:#6b7280;--brand:#111;--border:#e5e7eb}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans TC",Arial,sans-serif}
+  .wrap{max-width:520px;margin:0 auto;padding:20px 14px}
+  h1{font-size:20px;text-align:center;margin:8px 0 16px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;box-shadow:0 4px 12px rgba(0,0,0,.06);margin-bottom:14px}
+  label{display:block;font-size:14px;font-weight:600;margin:8px 0 6px}
+  input,textarea{width:100%;font-size:16px;padding:12px;border:1px solid var(--border);border-radius:10px}
+  textarea{min-height:84px;resize:vertical}
+  .row{display:flex;gap:10px}
+  .row>*{flex:1}
+  button{width:100%;background:var(--brand);color:#fff;font-size:16px;padding:14px;border:none;border-radius:10px;cursor:pointer}
+  button:active{opacity:.9}
+  .note{font-size:12px;color:var(--muted);text-align:center;margin-top:8px}
+  .status{margin-top:14px;text-align:center;font-weight:700}
+  .bad{color:#dc2626}
+  .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#f1f5f9;color:#111;font-size:12px}
+  .brand{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px}
+  .brand img{height:28px}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="card">
-    <h1>🆕 <span>啃酥新商品申請</span></h1>
-    <p class="hint">所有欄位必填</p>
-    <div class="hr"></div>
+  <div class="wrap">
+    <div class="brand">
+      <img src="https://your.cdn/logo.png" alt="logo">
+      <div class="pill">啃酥菱角酥｜出攤申請</div>
+    </div>
+    <h1>分店新地點申請</h1>
+    <div class="card">
+      <form id="applyForm" autocomplete="on">
+        <label>分店名稱</label>
+        <input name="分店名稱" required placeholder="例：啃酥菱角酥 竹南站前店" />
 
-    <form id="f" novalidate>
-      <div class="grid">
-        <div><div class="label">分店/單位 *</div><input class="input" name="store" required placeholder="例如：啃酥xx店"></div>
-        <div><div class="label">申請人 *</div><input class="input" name="applicant" required placeholder="你的姓名"></div>
-        <div><div class="label">Email *</div><input class="input" name="email" type="email" required placeholder="name@example.com"></div>
-        <div><div class="label">電話 *</div><input class="input" name="phone" required placeholder="0900-000-000"></div>
-        <div class="grid-full"><div class="label">備註 *</div><textarea class="textarea" name="remark" required placeholder="其他補充、注意事項…"></textarea></div>
+        <label>負責人</label>
+        <input name="負責人" required placeholder="例：王小明" />
+
+        <div class="row">
+          <div>
+            <label>電話</label>
+            <input name="電話" type="tel" inputmode="tel" required placeholder="09xx-xxx-xxx" />
+          </div>
+          <div>
+            <label>Email</label>
+            <input name="Email" type="email" required placeholder="you@example.com" />
+          </div>
+        </div>
+
+        <label>申請地點</label>
+        <textarea name="申請地點" required placeholder="例：苗栗縣竹南鎮○○路夜市 A 區 15 號攤位。請附主辦單位名稱／檔期／電力條件等。"></textarea>
+
+        <div class="row">
+          <div>
+            <label>出攤日期</label>
+            <input name="出攤日期" type="date" required />
+          </div>
+        </div>
+
+        <label>備註</label>
+        <textarea name="備註" placeholder="例：主辦單位檔期至 12/31，備有 110V 電源"></textarea>
+
+        <button type="submit">送出申請</button>
+      </form>
+
+      <div id="submitResult" class="status"></div>
+
+      <hr style="margin:16px 0;border:none;border-top:1px solid var(--border)" />
+
+      <div>
+        <div class="pill">查詢審核狀態</div>
+        <label style="margin-top:10px">申請編號</label>
+        <form id="queryForm" class="row" onsubmit="return false;">
+          <input id="qid" placeholder="例：KS-1A2B3C4D" />
+          <button id="queryBtn">查詢</button>
+        </form>
+        <div id="queryResult" class="status"></div>
       </div>
 
-      <div class="hr"></div>
-      <div class="label">申請品項 *</div>
-      <div id="products"></div>
-      <div class="actions"><button class="btn" type="button" id="add">＋新增一個品項</button></div>
-
-      <div class="actions">
-        <button class="btn btn-danger" type="button" id="resetBtn">清空</button>
-        <button class="btn btn-primary" type="submit" id="submitBtn">送出申請</button>
-      </div>
-      <div id="msg" class="small" style="margin-top:8px"></div>
-    </form>
-
-    <div id="done" style="display:none;text-align:center;padding:16px">
-      <h3>✅ 已送出</h3>
-      <p class="small">我們已收到你的申請，請留意審核通知。</p>
-      <div id="applyNo" class="small" style="margin-top:6px;"></div>
+      <div class="note">送出後會寄信通知總部；審核完成會寄正式通知到你填寫的 Email。</div>
     </div>
   </div>
-</div>
-
-<template id="tpl">
-  <div class="product">
-    <div class="grid">
-      <div><div class="label">商品名稱 *</div><input class="input p-name" required></div>
-      <div><div class="label">規格/包裝 *</div><input class="input p-spec" required></div>
-      <div><div class="label">建議售價 *</div><input class="input p-price" required></div>
-      <div><div class="label">成本 *</div><input class="input p-cost" required></div>
-      <div>
-        <div class="label">素別 *</div>
-        <select class="select p-veg" required>
-          <option value="">請選擇</option><option>葷食</option><option>蛋奶素</option><option>奶素</option><option>蛋素</option><option>全素</option>
-        </select>
-      </div>
-      <div><div class="label">過敏原 *</div><input class="input p-allg" required placeholder="蛋, 奶, 花生…"></div>
-      <div class="grid-full"><div class="label">成分/原料 *</div><textarea class="textarea p-ings" required placeholder="主要原料…"></textarea></div>
-      <div><div class="label">保存期限 *</div><input class="input p-life" required placeholder="常溫/冷藏/冷凍 + 月數"></div>
-      <div><div class="label">保存方式 *</div><input class="input p-store" required placeholder="常溫/冷藏/冷凍"></div>
-      <div>
-        <div class="label">供應型態 *</div>
-        <select class="select p-supply" required>
-          <option>常態供應</option><option>季節限定</option><option>試賣</option>
-        </select>
-      </div>
-      <div><div class="label">預計上架日 *</div><input class="input p-launch" type="date" required></div>
-
-      <div class="grid-full">
-        <div class="label">商品圖片（拍照或選擇相簿上傳）</div>
-        <input class="input p-img" type="file" accept="image/*" capture="environment" multiple>
-        <div class="preview"></div>
-      </div>
-    </div>
-    <div class="actions"><button class="btn btn-danger" type="button" onclick="removeProduct(this)">刪除此品項</button></div>
-  </div>
-</template>
 
 <script>
-/* ===== 你的 Make Webhook ===== */
-const MAKE_WEBHOOK_URL = "https://hook.eu2.make.com/ys72eapfco7huad511tph2z91rea6ygc";
+  const WEB_APP_URL = '<<貼上你的 Apps Script Web App URL>>'; // 必改
 
-/* ===== 可調參數（降載策略） ===== */
-const MAX_PAYLOAD_BYTES = 48000;            // 目標 < 50KB（留安全邊際）
-const IMG_MAX_W_STEP = [800, 600, 480, 360];
-const IMG_QUALITY_STEP = [0.8, 0.7, 0.6, 0.5];
-const MAX_IMAGES_PER_PRODUCT = 3;           // 每品項最多幾張
+  const $ = (s)=>document.querySelector(s);
+  const form = $('#applyForm');
+  const submitResult = $('#submitResult');
 
-/* ===== DOM ===== */
-const f = document.getElementById('f');
-const addBtn = document.getElementById('add');
-const productsBox = document.getElementById('products');
-const tpl = document.getElementById('tpl');
-const msg = document.getElementById('msg');
-const submitBtn = document.getElementById('submitBtn');
-const done = document.getElementById('done');
-const applyNoEl = document.getElementById('applyNo');
+  form.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    submitResult.textContent = '送出中…';
+    const fd = new FormData(form);
+    const data = Object.fromEntries(fd.entries());
 
-/* ===== Utils ===== */
-function uuid(){return'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0,v=c=='x'?r:(r&0x3|0x8);return v.toString(16);});}
-function esc(s){return String(s||'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));}
-function minifyHTML(html){return html.replace(/=\"/g,"='").replace(/\"/g,"'").replace(/\r?\n|\r|\t/g,' ').replace(/\s{2,}/g,' ').trim();}
-function byteLength(str){ return new TextEncoder().encode(str).length; }
-
-/* 圖片壓縮（指定 maxW/品質） */
-function compressImageWith(file, maxW, quality) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      const scale = img.width > maxW ? maxW / img.width : 1;
-      const w = Math.round(img.width * scale);
-      const h = Math.round(img.height * scale);
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      canvas.width = w; canvas.height = h;
-      ctx.drawImage(img, 0, 0, w, h);
-      try { resolve(canvas.toDataURL('image/jpeg', quality)); }
-      catch (e) { reject(e); }
-    };
-    const fr = new FileReader();
-    fr.onload = e => { img.src = e.target.result; };
-    fr.onerror = reject;
-    fr.readAsDataURL(file);
+    try {
+      const res = await fetch(WEB_APP_URL, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(data)
+      });
+      const json = await res.json();
+      if (json.ok) {
+        submitResult.innerHTML = `✅ 申請已送出，編號：<b>${json.id}</b>。<br>系統已通知總部，審核完成將寄正式信件給你。`;
+        form.reset();
+      } else {
+        submitResult.innerHTML = `❌ 送出失敗：<span class="bad">${json.error || 'unknown'}</span>`;
+      }
+    } catch (err) {
+      submitResult.innerHTML = `❌ 送出失敗：<span class="bad">${String(err)}</span>`;
+    }
   });
-}
 
-/* 自動降載壓縮：套用多組寬度/品質，盡量把單張壓到 ≤30KB */
-async function autoCompressImage(file){
-  for (const maxW of IMG_MAX_W_STEP) {
-    for (const q of IMG_QUALITY_STEP) {
-      try {
-        const dataUrl = await compressImageWith(file, maxW, q);
-        if (byteLength(dataUrl) <= 30000) return dataUrl;
-        if (maxW === IMG_MAX_W_STEP.at(-1) && q === IMG_QUALITY_STEP.at(-1)) return dataUrl;
-      } catch(e){}
+  // 查詢狀態
+  const queryBtn = $('#queryBtn');
+  const qidInput = $('#qid');
+  const queryResult = $('#queryResult');
+
+  queryBtn.addEventListener('click', async ()=>{
+    const qid = (qidInput.value || '').trim();
+    if (!qid) {
+      queryResult.textContent = '請輸入申請編號';
+      return;
     }
-  }
-}
-
-/* 圖片預覽與刪除 */
-function bindImagePreview(container) {
-  const input = container.querySelector('.p-img');
-  const preview = container.querySelector('.preview');
-  input.addEventListener('change', () => {
-    preview.innerHTML = '';
-    const files = Array.from(input.files);
-    files.forEach((file, idx) => {
-      const fr = new FileReader();
-      fr.onload = e => {
-        const wrap = document.createElement('div');
-        wrap.className = 'thumb';
-        const img = document.createElement('img');
-        img.src = e.target.result;
-        const rm = document.createElement('button');
-        rm.className = 'rm'; rm.type = 'button'; rm.textContent = '×';
-        rm.onclick = () => {
-          const list = Array.from(input.files);
-          list.splice(idx, 1);
-          const dt = new DataTransfer();
-          list.forEach(f => dt.items.add(f));
-          input.files = dt.files;
-          wrap.remove();
-        };
-        wrap.appendChild(img); wrap.appendChild(rm);
-        preview.appendChild(wrap);
-      };
-      fr.readAsDataURL(file);
-    });
+    queryResult.textContent = '查詢中…';
+    try {
+      const res = await fetch(`${WEB_APP_URL}?id=${encodeURIComponent(qid)}`);
+      const json = await res.json();
+      if (json.ok) {
+        let icon = '⏳';
+        if (json.狀態 === '通過') icon = '✅';
+        else if (json.狀態 === '不通過') icon = '❌';
+        queryResult.innerHTML = `${icon} 審核狀態：<b>${json.狀態}</b>` +
+          (json.審核時間 ? `<div class="note">更新時間：${json.審核時間}</div>` : '') +
+          (json.審核備註 ? `<div class="note">審核備註：${json.審核備註}</div>` : '');
+      } else {
+        queryResult.innerHTML = `❌ 查詢失敗：<span class="bad">${json.error}</span>`;
+      }
+    } catch (err) {
+      queryResult.innerHTML = `❌ 查詢失敗：<span class="bad">${String(err)}</span>`;
+    }
   });
-}
-
-/* 新增/刪除品項 */
-function addProduct(){
-  const node = tpl.content.cloneNode(true);
-  productsBox.appendChild(node);
-  bindImagePreview(productsBox.lastElementChild);
-}
-function _removeProduct(btn){
-  const card=btn.closest('.product');
-  if(productsBox.querySelectorAll('.product').length<=1){ alert('至少需要一個品項'); return; }
-  card.remove();
-}
-window.removeProduct = _removeProduct;
-
-addBtn.addEventListener('click', addProduct);
-document.getElementById('resetBtn').addEventListener('click', ()=>{
-  f.reset(); productsBox.innerHTML=''; addProduct(); msg.textContent='';
-});
-
-/* HTML 內容（給郵件/記錄） */
-async function buildProductsHTML(payload){
-  const parts = [];
-  parts.push(
-    `<div style='padding:16px 20px;font-size:14px;color:#111827;line-height:1.7'>
-       <div><b>分店 / 單位：</b>${esc(payload.store)}</div>
-       <div><b>申請人：</b>${esc(payload.applicant)}</div>
-       <div><b>Email：</b>${esc(payload.email)}</div>
-       <div><b>電話：</b>${esc(payload.phone)}</div>
-       <div><b>申請編號：</b>${esc(payload.apply_no)}</div>
-       <div style='margin-top:8px'><b>備註：</b><br>${esc(payload.remark)}</div>
-     </div>
-     <div style='padding:12px 20px;font-size:15px;font-weight:700;color:#374151;background:#f9fafb;border-top:1px solid #e5e7eb;border-bottom:1px solid #e5e7eb'>申請品項</div>`
-  );
-  payload.products.forEach((p, i) => {
-    let card =
-      `<div style='margin:16px 20px;padding:14px 16px;border:1px solid #e5e7eb;border-radius:10px;background:#fff;line-height:1.6;font-size:14px;color:#111827'>
-         <div style='font-weight:700;font-size:15px;margin-bottom:6px'>${i+1}. ${esc(p.product_name)}</div>
-         <div>規格：${esc(p.spec)}｜建議售價：${esc(p.price_suggest)}｜成本：${esc(p.cost)}</div>
-         <div>素別：${esc(p.vegetarian)}｜過敏原：${esc(p.allergens)}</div>
-         <div>成分：${esc(p.ingredients)}</div>
-         <div>保存期限：${esc(p.shelf_life)}｜保存方式：${esc(p.storage)}</div>
-         <div>供應型態：${esc(p.supply_type)}｜預計上架日：${esc(p.launch_date)}</div>`;
-    if (p.images && p.images.length){
-      card += `<div style='margin-top:8px'>` +
-              p.images.map(src => `<img src='${src}' style='width:120px;height:auto;margin:4px;border-radius:8px;border:1px solid #ddd'>`).join('') +
-              `</div>`;
-    }
-    card += `</div>`;
-    parts.push(card);
-  });
-  return minifyHTML(parts.join(''));
-}
-
-/* 純文字備援（給沒 HTML 的情況） */
-function buildProductsPlainText(payload){
-  const lines = [];
-  payload.products.forEach((p, i) => {
-    lines.push(
-      `${i+1}. ${p.product_name}\n` +
-      `   規格:${p.spec}  建議售價:${p.price_suggest}  成本:${p.cost}\n` +
-      `   素別:${p.vegetarian}  過敏原:${p.allergens}\n` +
-      `   成分:${p.ingredients}\n` +
-      `   保存期限:${p.shelf_life}  保存方式:${p.storage}\n` +
-      `   供應型態:${p.supply_type}  上架日:${p.launch_date}`
-    );
-  });
-  return lines.join('\n');
-}
-
-/* 收集（含圖片自動壓縮；每品項最多取前 MAX_IMAGES_PER_PRODUCT 張） */
-async function gatherRaw(){
-  const products=[];
-  for(const card of productsBox.querySelectorAll('.product')){
-    const get=sel=>card.querySelector(sel).value.trim();
-    const input = card.querySelector('.p-img');
-    const files = Array.from(input.files).slice(0, MAX_IMAGES_PER_PRODUCT);
-
-    const images = [];
-    for (const file of files) {
-      try { images.push(await autoCompressImage(file)); } catch(e) {}
-    }
-
-    products.push({
-      product_name:get('.p-name'),
-      spec:get('.p-spec'),
-      price_suggest:get('.p-price'),
-      cost:get('.p-cost'),
-      vegetarian:card.querySelector('.p-veg').value,
-      allergens:get('.p-allg'),
-      ingredients:get('.p-ings'),
-      shelf_life:get('.p-life'),
-      storage:get('.p-store'),
-      supply_type:card.querySelector('.p-supply').value,
-      launch_date:card.querySelector('.p-launch').value,
-      images
-    });
-  }
-
-  const apply_no=uuid();
-  const payload={
-    type:"new_product_application",
-    apply_no,
-    store:f.store.value.trim(),
-    applicant:f.applicant.value.trim(),
-    email:f.email.value.trim(),
-    phone:f.phone.value.trim(),
-    remark:f.remark.value.trim(),
-    products
-  };
-  payload.email_subject=`新商品申請｜${payload.store}｜${apply_no}`;
-  payload.products_html = await buildProductsHTML(payload);
-  payload.products_plain = buildProductsPlainText(payload);   // << 新增
-  return payload;
-}
-
-/* 把 payload 自動瘦身到限制以內 */
-async function adaptPayloadToLimit(payload){
-  let json = JSON.stringify(payload);
-  if (byteLength(json) <= MAX_PAYLOAD_BYTES) return payload;
-
-  // Move 1: 移除 products_html（長字串）
-  delete payload.products_html;
-  payload.products_html_omitted = true;     // << 新增
-  json = JSON.stringify(payload);
-  if (byteLength(json) <= MAX_PAYLOAD_BYTES) return payload;
-
-  // Move 2: 圖片只保留第一張
-  for (const p of payload.products) {
-    if (!p.images || !p.images.length) continue;
-    p.images = [p.images[0]];
-  }
-  json = JSON.stringify(payload);
-  if (byteLength(json) <= MAX_PAYLOAD_BYTES) return payload;
-
-  // Move 3: 全不傳圖片，改傳統計
-  for (const p of payload.products) {
-    const count = p.images ? p.images.length : 0;
-    delete p.images;
-    p.image_count = count;
-    p.images_omitted = true;
-  }
-  json = JSON.stringify(payload);
-  if (byteLength(json) <= MAX_PAYLOAD_BYTES) return payload;
-
-  // Move 4: 備註過長再截斷
-  if (payload.remark && payload.remark.length > 200) {
-    payload.remark = payload.remark.slice(0,200) + '…(trimmed)';
-  }
-  return payload;
-}
-
-/* 驗證 */
-function validate(){
-  const need=[f.store,f.applicant,f.email,f.phone,f.remark];
-  for(const el of need){ if(!el.value.trim()) return '請完整填寫共同欄位'; }
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.value.trim())) return 'Email 格式不正確';
-  const cards=productsBox.querySelectorAll('.product');
-  if(!cards.length) return '請至少新增一個品項';
-  for(const card of cards){
-    const req=['.p-name','.p-spec','.p-price','.p-cost','.p-veg','.p-allg','.p-ings','.p-life','.p-store','.p-supply','.p-launch'];
-    for(const sel of req){
-      const el=card.querySelector(sel);
-      if(!el || !String(el.value||'').trim()) return '每個品項所有欄位皆為必填';
-    }
-  }
-  return '';
-}
-
-/* 送出到 Make */
-f.addEventListener('submit',async e=>{
-  e.preventDefault();
-  msg.textContent='';
-  const err=validate();
-  if(err){ msg.textContent='⚠️ '+err; return; }
-
-  submitBtn.disabled=true;
-
-  try{
-    let payload = await gatherRaw();
-    payload = await adaptPayloadToLimit(payload);
-
-    const res = await fetch(MAKE_WEBHOOK_URL,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(payload)
-    });
-    if(!res.ok) throw new Error('Make 回應狀態碼：'+res.status);
-
-    f.style.display='none';
-    done.style.display='block';
-    applyNoEl.textContent='申請編號：'+payload.apply_no;
-
-    if (payload.products.some(p => p.images_omitted)) {
-      msg.innerHTML = '部分圖片為避免超過 50KB 上限已省略，客服將再向您索取原圖。';
-    }
-  }catch(e){
-    msg.innerHTML=`<span class="error">❌ 送出失敗：</span>${e.message||e}`;
-  }finally{
-    submitBtn.disabled=false;
-  }
-});
-
-/* 預設至少一個品項 */
-addProduct();
 </script>
-
+</body>
+</html>
